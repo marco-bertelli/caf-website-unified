@@ -1,0 +1,15 @@
+---
+import Base from '../layouts/Base.astro';
+import Privacy from '@tutela/shared/Privacy.astro';
+import { azienda } from '@tutela/shared/azienda.ts';
+---
+<Base title="Privacy e cookie" description="Come trattiamo i tuoi dati personali e quali cookie usa il sito.">
+  <div class="wrap legal">
+    <h1>Privacy e cookie</h1>
+    <Privacy sito={azienda.siti.pensioni.url} datiParticolari />
+  </div>
+</Base>
+
+<style>
+  .legal { padding-block: 3rem 6rem; display: grid; gap: 2rem; }
+</style>

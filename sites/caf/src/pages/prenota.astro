@@ -1,0 +1,136 @@
+---
+import Base from '../layouts/Base.astro';
+import Promemoria from '../components/Promemoria.astro';
+import { servizi, categorie } from '../data/servizi';
+import { azienda, telLink } from '@tutela/shared/azienda.ts';
+
+// giorni JS (0 = domenica) in cui l'ufficio è chiuso
+const chiusi = azienda.orari.flatMap((o, i) => (o.fasce.length ? [] : [(i + 1) % 7]));
+const giorniChiusi = azienda.orari.filter((o) => !o.fasce.length).map((o) => o.giorno.toLowerCase()).join(' e ');
+---
+<Base title="Prenota un appuntamento" description="Prenota online il tuo appuntamento al CAF di Palazzolo sull'Oglio e guarda subito quali documenti portare.">
+  <div class="wrap">
+    <nav class="crumbs" aria-label="Percorso"><ol><li><a href="/">Home</a></li><li aria-current="page">Prenota</li></ol></nav>
+  </div>
+
+  <section class="wrap prenota">
+    <div class="prenota-main">
+      <header class="prenota-head">
+        <h1>Prenota un appuntamento</h1>
+        <p class="lead">Dicci per cosa vieni e quando preferisci. Ti chiamiamo entro un giorno lavorativo per confermare data e ora.</p>
+      </header>
+
+      <form class="form" data-endpoint={azienda.form.prenota} novalidate>
+        <input type="hidden" name="_subject" value="Nuova richiesta di appuntamento dal sito" />
+        <input class="hp" type="text" name="_gotcha" tabindex="-1" autocomplete="off" aria-hidden="true" />
+
+        <div class="field">
+          <label for="servizio">Servizio</label>
+          <select id="servizio" name="servizio" required>
+            <option value="">Scegli un servizio</option>
+            {categorie.map((c) => (
+              <optgroup label={c}>
+                {servizi.filter((s) => s.categoria === c).map((s) => <option value={s.slug}>{s.nome}</option>)}
+              </optgroup>
+            ))}
+            <option value="altro">Altro, lo scrivo nelle note</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="giorno">Giorno preferito</label>
+            <input id="giorno" name="giorno" type="date" required data-chiusi={chiusi.join(',')} aria-describedby="giorno-hint" />
+            <span class="hint" id="giorno-hint">Siamo chiusi la {giorniChiusi}.</span>
+          </div>
+          <fieldset class="field">
+            <legend>Orario</legend>
+            <div class="choices choices-row">
+              <label class="choice"><input type="radio" name="fascia" value="Mattina" checked /> Mattina</label>
+              <label class="choice"><input type="radio" name="fascia" value="Pomeriggio" /> Pomeriggio</label>
+            </div>
+          </fieldset>
+        </div>
+
+        <div class="field">
+          <label for="nome">Nome e cognome</label>
+          <input id="nome" name="nome" autocomplete="name" required />
+        </div>
+        <div class="row">
+          <div class="field">
+            <label for="telefono">Telefono</label>
+            <input id="telefono" name="telefono" type="tel" autocomplete="tel" required pattern="[0-9 +()./-]{6,}" />
+          </div>
+          <div class="field">
+            <label for="email">Email <span class="req">(facoltativa)</span></label>
+            <input id="email" name="email" type="email" autocomplete="email" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="note">Note <span class="req">(facoltative)</span></label>
+          <textarea id="note" name="note" placeholder="Es. veniamo in due per il 730, oppure: mi serve anche l'ISEE"></textarea>
+        </div>
+
+        <label class="check">
+          <input type="checkbox" name="privacy" value="accettata" required />
+          <span>Ho letto l'<a href="/privacy/">informativa privacy</a> e acconsento a essere ricontattato per questa richiesta.</span>
+        </label>
+
+        <p class="form-error" data-error tabindex="-1" hidden>
+          La richiesta non è partita. Controlla la connessione e riprova, oppure chiamaci al <a href={telLink}>{azienda.telefono}</a>.
+        </p>
+        <button class="btn btn-primary" type="submit">Invia la richiesta</button>
+      </form>
+
+      <div class="success" data-success tabindex="-1" hidden>
+        <h2>Richiesta inviata</h2>
+        <p>Ti chiamiamo entro un giorno lavorativo per confermare data e ora. Intanto puoi preparare i documenti con la lista qui accanto.</p>
+        <a class="btn btn-ghost" href="/">Torna alla home</a>
+      </div>
+    </div>
+
+    <aside class="prenota-side" style="--bg-behind: var(--bg)" aria-label="Documenti da portare">
+      <Promemoria segui="servizio" iniziale="" titolo="Cosa portare" />
+      <p class="side-alt">Preferisci parlare con qualcuno? Chiama il <a href={telLink}>{azienda.telefono}</a> o scrivici su <a href={`https://wa.me/${azienda.whatsapp}`}>WhatsApp</a>.</p>
+    </aside>
+  </section>
+</Base>
+
+<script>
+  import { wireForms } from '@tutela/shared/form.ts';
+  wireForms();
+
+  const sel = document.getElementById('servizio') as HTMLSelectElement;
+  const preset = new URLSearchParams(location.search).get('servizio');
+  if (preset && [...sel.options].some((o) => o.value === preset)) {
+    sel.value = preset;
+    sel.dispatchEvent(new Event('change'));
+  }
+
+  // dal giorno dopo, e niente giorni di chiusura
+  const giorno = document.getElementById('giorno') as HTMLInputElement;
+  const domani = new Date(Date.now() + 864e5);
+  giorno.min = `${domani.getFullYear()}-${String(domani.getMonth() + 1).padStart(2, '0')}-${String(domani.getDate()).padStart(2, '0')}`;
+  const chiusi = giorno.dataset.chiusi!.split(',').filter(Boolean).map(Number);
+  giorno.addEventListener('input', () => {
+    const d = giorno.valueAsDate;
+    giorno.setCustomValidity(d && chiusi.includes(d.getUTCDay()) ? 'Quel giorno siamo chiusi: scegli un altro giorno.' : '');
+  });
+</script>
+
+<style>
+  .prenota { display: grid; grid-template-columns: minmax(0, 1fr) 26rem; gap: clamp(2rem, 5vw, 5rem); padding-block: 1.5rem clamp(4rem, 8vw, 6rem); align-items: start; }
+  .prenota-main { display: grid; gap: 2rem; max-width: 40rem; }
+  .prenota-head { display: grid; gap: 0.9rem; }
+  .form { display: grid; gap: 1.4rem; }
+  .form .btn[type=submit] { justify-self: start; min-width: 14rem; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem; }
+  .choices-row { display: flex; flex-wrap: wrap; }
+  .choices-row .choice { flex: 1 1 8.5rem; }
+  .success { display: grid; gap: 1rem; padding: 2rem; border: 2px solid var(--primary); border-radius: var(--radius); justify-items: start; }
+  .success h2 { color: var(--primary); }
+  .prenota-side { position: sticky; top: 6.5rem; display: grid; gap: 1.25rem; }
+  .side-alt { color: var(--ink-2); font-size: 0.975rem; }
+  @media (max-width: 62rem) { .prenota { grid-template-columns: 1fr; } .prenota-side { position: static; } }
+  @media (max-width: 36rem) { .row { grid-template-columns: 1fr; } }
+</style>

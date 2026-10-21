@@ -1,0 +1,91 @@
+---
+// La lista "cosa portare". Tre usi:
+// - con select propria (home)
+// - legata a una select esterna, es. il form di prenotazione (segui="id-della-select")
+// - fissa su un servizio (solo)
+import { servizi, documentiSempre, servizioDa } from '../data/servizi';
+
+interface Props { iniziale?: string; segui?: string; solo?: boolean; titolo?: string; }
+const { iniziale = '730', segui, solo = false, titolo = 'Cosa devo portare?' } = Astro.props;
+const lista = solo ? [servizioDa(iniziale)!] : servizi;
+const id = `pm-${solo ? iniziale : segui ?? 'home'}`;
+---
+<div class="promemoria" data-promemoria data-segui={segui} data-solo={solo || undefined} id={id}>
+  <div class="promemoria-head">
+    {solo || segui ? (
+      <h2 class="promemoria-title">{titolo}</h2>
+    ) : (
+      <>
+        <label class="promemoria-title" for={`${id}-sel`}>{titolo}</label>
+        <select id={`${id}-sel`} data-select>
+          {servizi.map((s) => <option value={s.slug} selected={s.slug === iniziale}>{s.nome}</option>)}
+        </select>
+      </>
+    )}
+  </div>
+
+  <div class="promemoria-scroll">
+    <p class="promemoria-empty" data-empty hidden>Scegli il servizio e qui comparirà la lista dei documenti da portare.</p>
+    {lista.map((s) => (
+      <div class="promemoria-list" data-slug={s.slug} hidden={s.slug !== iniziale}>
+        <div class="promemoria-group">
+          <h4>Per ogni appuntamento</h4>
+          <ul>{documentiSempre.map((d) => <li><label class="check"><input type="checkbox" /><span>{d}</span></label></li>)}</ul>
+        </div>
+        {s.documenti.map((g) => (
+          <div class="promemoria-group">
+            <h4>{g.gruppo}</h4>
+            <ul>{g.voci.map((d) => <li><label class="check"><input type="checkbox" /><span>{d}</span></label></li>)}</ul>
+          </div>
+        ))}
+        {s.note?.map((n) => <p class="promemoria-note">{n}</p>)}
+      </div>
+    ))}
+  </div>
+
+  <div class="promemoria-foot no-print">
+    <span class="promemoria-count" data-count aria-live="polite"></span>
+    <div class="promemoria-actions">
+      <button type="button" class="btn btn-ghost" data-print>Stampa la lista</button>
+      {!segui && <a class="btn btn-primary" data-book href={`/prenota/?servizio=${iniziale}`}>Prenota</a>}
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-promemoria]').forEach((box) => {
+    const select = box.dataset.segui
+      ? document.getElementById(box.dataset.segui) as HTMLSelectElement | null
+      : box.querySelector<HTMLSelectElement>('[data-select]');
+    const count = box.querySelector<HTMLElement>('[data-count]')!;
+    const book = box.querySelector<HTMLAnchorElement>('[data-book]');
+    const visible = () => box.querySelector<HTMLElement>('.promemoria-list:not([hidden])');
+
+    const updateCount = () => {
+      const list = visible();
+      box.querySelector<HTMLElement>('[data-empty]')!.hidden = !!list;
+      if (!list) { count.textContent = ''; return; }
+      const all = list.querySelectorAll('input').length;
+      const done = list.querySelectorAll('input:checked').length;
+      count.textContent = done === 0 ? `${all} documenti da preparare` : done === all ? 'Hai tutto, ci vediamo in ufficio' : `Ne hai ${done} su ${all}`;
+    };
+    const show = (slug: string) => {
+      box.querySelectorAll<HTMLElement>('.promemoria-list').forEach((l) => (l.hidden = l.dataset.slug !== slug));
+      if (book) book.href = `/prenota/?servizio=${slug}`;
+      updateCount();
+    };
+
+    select?.addEventListener('change', () => show(select.value));
+    if (select) show(select.value);
+    box.addEventListener('change', (e) => { if ((e.target as HTMLElement).matches('input')) updateCount(); });
+    updateCount();
+
+    box.querySelector('[data-print]')!.addEventListener('click', () => {
+      box.setAttribute('data-stampa', '');
+      document.body.classList.add('stampa-lista');
+      window.print();
+      document.body.classList.remove('stampa-lista');
+      box.removeAttribute('data-stampa');
+    });
+  });
+</script>

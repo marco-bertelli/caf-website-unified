@@ -1,0 +1,34 @@
+---
+// Informativa privacy comune. Testo base da far verificare a un consulente privacy/DPO prima della pubblicazione.
+import { azienda, indirizzoCompleto } from './azienda';
+interface Props { sito: string; datiParticolari?: boolean; }
+const { sito, datiParticolari = false } = Astro.props;
+---
+<div class="prose">
+  <p>Questa informativa spiega come {azienda.ragioneSociale} tratta i dati personali raccolti tramite il sito {sito}, ai sensi del Regolamento UE 2016/679 (GDPR).</p>
+
+  <h2>Titolare del trattamento</h2>
+  <p>{azienda.ragioneSociale}, {indirizzoCompleto}. P.IVA {azienda.piva}. Email <a href={`mailto:${azienda.email}`}>{azienda.email}</a>, PEC {azienda.pec}.</p>
+
+  <h2>Quali dati raccogliamo</h2>
+  <ul>
+    <li>I dati che inserisci nei moduli: nome, recapiti, servizio richiesto e le informazioni che scegli di scriverci.</li>
+    {datiParticolari && <li>Nel questionario previdenziale, informazioni sulla tua storia lavorativa e contributiva. Se ci comunichi dati relativi alla salute (per esempio invalidità), li trattiamo solo con il tuo consenso esplicito e solo per la consulenza.</li>}
+    <li>Dati tecnici di navigazione strettamente necessari al funzionamento del sito, conservati dal fornitore di hosting.</li>
+  </ul>
+
+  <h2>Perché li trattiamo</h2>
+  <p>Per rispondere alle tue richieste, fissare appuntamenti e svolgere il servizio che ci chiedi (base giuridica: esecuzione di misure precontrattuali e contrattuali, art. 6.1.b GDPR{datiParticolari && '; per i dati sulla salute, consenso esplicito, art. 9.2.a'}). Non usiamo i tuoi dati per pubblicità e non li cediamo a terzi.</p>
+
+  <h2>Per quanto tempo</h2>
+  <p>Le richieste che non diventano un incarico vengono cancellate entro 12 mesi. I dati legati a una pratica sono conservati per il tempo previsto dagli obblighi fiscali e di legge.</p>
+
+  <h2>Chi può vederli</h2>
+  <p>Il nostro personale autorizzato e i fornitori che ci aiutano a gestire il sito e i moduli, nominati responsabili del trattamento. Se lo richiedi, enti come INPS e Agenzia delle Entrate per lo svolgimento della pratica.</p>
+
+  <h2>Cookie</h2>
+  <p>Questo sito non usa cookie di profilazione né strumenti di statistica che ti tracciano. Per questo non ti chiediamo il consenso all'ingresso.</p>
+
+  <h2>I tuoi diritti</h2>
+  <p>Puoi chiedere in ogni momento di accedere ai tuoi dati, correggerli, cancellarli, limitarne l'uso o riceverne una copia, scrivendo a <a href={`mailto:${azienda.email}`}>{azienda.email}</a>. Se ritieni che il trattamento non sia corretto puoi presentare reclamo al <a href="https://www.garanteprivacy.it">Garante per la protezione dei dati personali</a>.</p>
+</div>

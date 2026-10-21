@@ -1,0 +1,126 @@
+---
+// Navigazione per eventi della vita: la gente pensa "ho perso il lavoro", non "NASpI".
+import { servizioDa } from '../data/servizi';
+import { azienda } from '@tutela/shared/azienda.ts';
+
+type Passo = { servizio: string; quando: string; perche: string };
+const eventi: { id: string; titolo: string; passi: Passo[]; nota?: string; pensioni?: boolean }[] = [
+  { id: 'lavoro', titolo: 'Ho perso il lavoro', passi: [
+    { servizio: 'naspi', quando: 'Entro 68 giorni', perche: 'Per ricevere l\'indennità di disoccupazione. Dopo i 68 giorni dalla fine del rapporto la perdi.' },
+    { servizio: 'isee', quando: 'Subito dopo', perche: 'Con un reddito più basso potresti avere diritto a bonus e agevolazioni.' },
+  ] },
+  { id: 'figlio', titolo: 'È nato un figlio', passi: [
+    { servizio: 'isee', quando: 'Prima della domanda', perche: 'Senza ISEE l\'Assegno Unico è all\'importo minimo.' },
+    { servizio: 'assegno-unico', quando: 'Entro 120 giorni dalla nascita', perche: 'Così ricevi l\'assegno anche per i mesi dal settimo di gravidanza.' },
+  ] },
+  { id: 'lutto', titolo: 'È mancato un familiare', passi: [
+    { servizio: 'domanda-pensione', quando: 'Appena possibile', perche: 'Coniuge e figli possono avere diritto alla pensione ai superstiti.' },
+    { servizio: 'successioni', quando: 'Entro 12 mesi', perche: 'Dichiarazione di successione e passaggio degli immobili agli eredi.' },
+    { servizio: 'modello-redditi', quando: 'L\'anno successivo', perche: 'Gli eredi presentano l\'ultima dichiarazione dei redditi della persona scomparsa.' },
+  ] },
+  { id: 'casa', titolo: 'Ho comprato o ereditato una casa', passi: [
+    { servizio: 'imu', quando: 'Alla prima rata', perche: 'Se non è la tua abitazione principale paghi l\'IMU dal mese del passaggio.' },
+    { servizio: '730', quando: 'Nella prossima dichiarazione', perche: 'Gli interessi del mutuo per la prima casa si detraggono.' },
+  ] },
+  { id: 'affitto', titolo: 'Affitto una casa o vado in affitto', passi: [
+    { servizio: 'contratti-affitto', quando: 'Entro 30 giorni dalla firma', perche: 'Il contratto va registrato. Ti diciamo anche se conviene la cedolare secca.' },
+    { servizio: '730', quando: 'Nella prossima dichiarazione', perche: 'Chi è in affitto può avere una detrazione, chi affitta dichiara il canone.' },
+  ] },
+  { id: 'badante', titolo: 'Assumo una colf o una badante', passi: [
+    { servizio: 'colf-badanti', quando: 'Il giorno prima dell\'inizio', perche: 'L\'assunzione va comunicata all\'INPS prima che inizi a lavorare.' },
+    { servizio: '730', quando: 'Nella prossima dichiarazione', perche: 'I contributi pagati si deducono. Per l\'assistenza a persone non autosufficienti c\'è anche una detrazione.' },
+  ] },
+  { id: 'dimissioni', titolo: 'Voglio dare le dimissioni', passi: [
+    { servizio: 'dimissioni', quando: 'Prima di lasciare il lavoro', perche: 'Sono valide solo se inviate online. Verifichiamo anche il preavviso.' },
+  ], nota: 'Con le dimissioni volontarie la NASpI spetta solo se c\'è una giusta causa. Parliamone prima di inviarle.' },
+  { id: 'pensione', titolo: 'Sto per andare in pensione', passi: [
+    { servizio: 'domanda-pensione', quando: 'Qualche mese prima', perche: 'Verifichiamo i requisiti e presentiamo la domanda all\'INPS.' },
+  ], pensioni: true },
+];
+---
+<div class="eventi">
+  <fieldset class="ev-scelte">
+    <legend class="vh">La tua situazione</legend>
+    {eventi.map((e, i) => (
+      <label class="ev-scelta">
+        <input class="vh" type="radio" name="evento" value={e.id} checked={i === 0} data-ev={e.id} />
+        <span>{e.titolo}</span>
+      </label>
+    ))}
+  </fieldset>
+
+  <div class="ev-pannelli" id="ev-pannelli" aria-live="polite">
+    {eventi.map((e) => (
+      <div class="ev-pannello" data-pannello={e.id}>
+        <p class="ev-titolo">{e.titolo}: ecco cosa fare</p>
+        <ol class="ev-passi">
+          {e.passi.map((p) => {
+            const s = servizioDa(p.servizio)!;
+            return (
+              <li>
+                <span class="ev-quando">{p.quando}</span>
+                <h3><a href={`/servizi/${s.slug}/`}>{s.nome}</a></h3>
+                <p>{p.perche}</p>
+              </li>
+            );
+          })}
+        </ol>
+        {e.nota && <p class="ev-nota">{e.nota}</p>}
+        {e.pensioni && <p class="ev-nota">Mancano ancora anni? Con la <a href={azienda.siti.pensioni.url}>consulenza pensionistica</a> scopri prima quando e con quanto.</p>}
+        <a class="btn btn-primary" href={`/prenota/?servizio=${e.passi[0].servizio}`}>Prenota per {servizioDa(e.passi[0].servizio)!.nome}</a>
+      </div>
+    ))}
+  </div>
+</div>
+
+<!-- il pannello visibile segue la scelta, senza JS -->
+<Fragment set:html={`<style>${eventi.map((e) => `.eventi:has([data-ev='${e.id}']:checked) [data-pannello='${e.id}']`).join(',')}{display:grid;gap:1.25rem;justify-items:start}</style>`} />
+
+<script>
+  // su schermi stretti il pannello è sotto le scelte: portalo in vista
+  document.querySelectorAll<HTMLInputElement>('[data-ev]').forEach((r) =>
+    r.addEventListener('change', () => {
+      const p = document.querySelector<HTMLElement>(`[data-pannello="${r.value}"]`)!;
+      if (p.getBoundingClientRect().top > innerHeight * 0.6) p.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }),
+  );
+</script>
+
+<style>
+  .eventi { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 2rem clamp(2rem, 5vw, 4rem); align-items: start; }
+  .ev-scelte { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+  .ev-scelta span {
+    display: flex; align-items: center; min-height: 4.25rem; padding: 0.85rem 1rem; height: 100%;
+    border: 1.5px solid rgb(255 255 255 / 0.3); border-radius: var(--radius); color: #fff;
+    font-weight: 650; line-height: 1.3; cursor: pointer; transition: background-color 0.15s, border-color 0.15s;
+  }
+  .ev-scelta:hover span { border-color: rgb(255 255 255 / 0.7); }
+  .ev-scelta :checked + span { background: var(--marker); border-color: var(--marker); color: var(--ink); }
+  .ev-scelta :focus-visible + span { outline: 3px solid #fff; outline-offset: 2px; }
+
+  .ev-pannello { display: none; background: #fff; color: var(--ink); border-radius: var(--radius); padding: clamp(1.5rem, 3vw, 2.25rem); }
+  @media (prefers-reduced-motion: no-preference) {
+    .ev-pannello { animation: entra 0.25s ease-out; }
+    @keyframes entra { from { opacity: 0; transform: translateY(6px); } }
+  }
+
+  .ev-titolo { font-weight: 750; font-size: 1.3rem; letter-spacing: -0.015em; }
+  .ev-passi { list-style: none; padding: 0; display: grid; counter-reset: passo; width: 100%; }
+  .ev-passi li {
+    counter-increment: passo; position: relative; display: grid; gap: 0.25rem;
+    padding: 0 0 1.25rem 3rem; margin-left: 0.9rem; border-left: 2px solid var(--line);
+  }
+  .ev-passi li:last-child { border-color: transparent; padding-bottom: 0; }
+  .ev-passi li::before {
+    content: counter(passo); position: absolute; left: -0.95rem; top: -0.1rem; width: 1.8rem; height: 1.8rem; border-radius: 50%;
+    display: grid; place-items: center; background: var(--primary); color: #fff; font-weight: 750; font-size: 0.9rem;
+  }
+  .ev-quando { justify-self: start; font-size: 0.875rem; font-weight: 700; background: var(--paper); border: 1px solid var(--paper-line); padding: 0.05rem 0.5rem; border-radius: 3px; }
+  .ev-passi h3 { font-size: 1.15rem; }
+  .ev-passi h3 a { color: var(--ink); }
+  .ev-passi p { color: var(--ink-2); max-width: 50ch; }
+  .ev-nota { padding: 0.75rem 1rem; background: var(--surface); border-left: 3px solid var(--primary); max-width: 56ch; }
+
+  @media (max-width: 60rem) { .eventi { grid-template-columns: 1fr; } }
+  @media (max-width: 26rem) { .ev-scelte { grid-template-columns: 1fr; } .ev-scelta span { min-height: 3.25rem; } }
+</style>

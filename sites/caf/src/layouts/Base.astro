@@ -1,0 +1,111 @@
+---
+import '../styles/caf.css';
+import Head from '@tutela/shared/Head.astro';
+import Logo from '@tutela/shared/Logo.astro';
+import { azienda, indirizzoCompleto, telLink } from '@tutela/shared/azienda.ts';
+
+interface Props { title: string; description: string; }
+const { title, description } = Astro.props;
+const { nome } = azienda.siti.caf;
+const path = Astro.url.pathname;
+const current = (href: string) => (path.startsWith(href) ? 'page' : undefined);
+const links = [
+  { href: '/servizi/', label: 'Servizi' },
+  { href: '/scadenze/', label: 'Scadenze' },
+  { href: '/#dove-siamo', label: 'Dove siamo' },
+  { href: azienda.siti.pensioni.url, label: 'Consulenza pensioni' },
+];
+---
+<!doctype html>
+<html lang="it">
+  <head>
+    <Head title={title} description={description} siteName={nome} themeColor="#0B3D33">
+      <slot name="head" />
+    </Head>
+  </head>
+  <body>
+    <a class="skip" href="#main">Vai al contenuto</a>
+    <div class="topbar no-print">
+      <div class="wrap topbar-in">
+        <span class="topbar-addr">{indirizzoCompleto}</span>
+        <span class="stato" data-stato>Orari in fondo alla pagina</span>
+        <a href={telLink}>{azienda.telefono}</a>
+      </div>
+    </div>
+    <header class="site-header no-print">
+      <div class="wrap nav">
+        <a class="brand" href="/" aria-label={`${nome}, home`}>
+          <Logo />
+          <span><strong>{nome}</strong><small>{azienda.siti.caf.linea}</small></span>
+        </a>
+        <nav class="nav-links" aria-label="Principale">
+          {links.map((l) => <a href={l.href} aria-current={current(l.href)}>{l.label}</a>)}
+        </nav>
+        <a class="btn btn-primary" href="/prenota/">Prenota un appuntamento</a>
+        <details class="nav-mobile">
+          <summary>Menu</summary>
+          <nav aria-label="Principale">
+            {links.map((l) => <a href={l.href}>{l.label}</a>)}
+            <a href={telLink}>Chiama {azienda.telefono}</a>
+            <a class="btn btn-primary" href="/prenota/">Prenota un appuntamento</a>
+          </nav>
+        </details>
+      </div>
+    </header>
+
+    <main id="main"><slot /></main>
+
+    <footer class="site-footer no-print">
+      <div class="wrap">
+        <div class="footer-grid">
+          <div class="footer-brand">
+            <a class="brand" href="/"><Logo /><span><strong>{nome}</strong><small>{azienda.siti.caf.linea}</small></span></a>
+            <p>{indirizzoCompleto}</p>
+            <p>{azienda.parcheggio}</p>
+          </div>
+          <div>
+            <h2>Contatti</h2>
+            <ul>
+              <li><a href={telLink}>{azienda.telefono}</a></li>
+              <li><a href={`https://wa.me/${azienda.whatsapp}`}>Scrivici su WhatsApp</a></li>
+              <li><a href={`mailto:${azienda.email}`}>{azienda.email}</a></li>
+              <li><a href={azienda.facebook}>Seguici su Facebook</a></li>
+            </ul>
+          </div>
+          <div>
+            <h2>Orari</h2>
+            <dl class="footer-orari">
+              {azienda.orari.map((o) => (<><dt>{o.giorno.slice(0, 3)}</dt><dd>{o.fasce.length ? o.fasce.join(', ') : 'Chiuso'}</dd></>))}
+            </dl>
+          </div>
+          <div>
+            <h2>Il sito</h2>
+            <ul>
+              <li><a href="/servizi/">Tutti i servizi</a></li>
+              <li><a href="/prenota/">Prenota un appuntamento</a></li>
+              <li><a href="/scadenze/">Scadenze fiscali</a></li>
+              <li><a href={azienda.siti.pensioni.url}>Consulenza pensionistica</a></li>
+              <li><a href="/privacy/">Privacy e cookie</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <span>© {new Date().getFullYear()} {azienda.ragioneSociale}. P.IVA {azienda.piva}</span>
+          <span>{azienda.convenzione}</span>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      import { azienda } from '@tutela/shared/azienda.ts';
+      import { statoApertura, oraItaliana } from '../lib/orari';
+      const el = document.querySelector<HTMLElement>('[data-stato]');
+      if (el) {
+        const { giorno, minuti } = oraItaliana();
+        const s = statoApertura(azienda.orari, giorno, minuti);
+        el.textContent = s.testo;
+        el.dataset.aperto = String(s.aperto);
+      }
+    </script>
+  </body>
+</html>

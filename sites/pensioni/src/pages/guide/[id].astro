@@ -1,0 +1,129 @@
+---
+import Base from '../../layouts/Base.astro';
+import { render, type CollectionEntry } from 'astro:content';
+import { guideOrdinate, minutiLettura, meseAnno } from '../../lib/guide';
+
+export async function getStaticPaths() {
+  return (await guideOrdinate()).map((g) => ({ params: { id: g.id }, props: { g } }));
+}
+const { g } = Astro.props as { g: CollectionEntry<'guide'> };
+const { Content, headings } = await render(g);
+const indice = headings.filter((h) => h.depth === 2);
+const altre = (await guideOrdinate()).filter((x) => x.id !== g.id);
+---
+<Base title={g.data.titolo} description={g.data.sommario}>
+  <div class="wrap">
+    <nav class="crumbs" aria-label="Percorso">
+      <ol><li><a href="/">Home</a></li><li><a href="/guide/">Guide</a></li><li aria-current="page">{g.data.argomento}</li></ol>
+    </nav>
+  </div>
+
+  <article class="wrap art">
+    <header class="art-head">
+      <p class="art-arg">{g.data.argomento}</p>
+      <h1>{g.data.titolo}</h1>
+      <p class="lead">{g.data.sommario}</p>
+      <p class="art-meta">Aggiornata a {meseAnno(g.data.aggiornata)}. {minutiLettura(g)} minuti di lettura.</p>
+    </header>
+
+    <aside class="art-toc" aria-labelledby="toc-t">
+      <p id="toc-t" class="toc-t">In questa guida</p>
+      <ol>{indice.map((h) => <li><a href={`#${h.slug}`}>{h.text}</a></li>)}</ol>
+    </aside>
+
+    <div class="art-body">
+      <section class="in-breve" aria-labelledby="breve-t">
+        <h2 id="breve-t">In breve</h2>
+        <ul>{g.data.inBreve.map((p) => <li>{p}</li>)}</ul>
+      </section>
+
+      <div class="prosa"><Content /></div>
+
+      <p class="art-nota">Questa guida descrive le regole generali in vigore a {meseAnno(g.data.aggiornata)}. Non sostituisce una valutazione sul tuo caso.</p>
+
+      <section class="art-cta" aria-labelledby="cta-t">
+        <h2 id="cta-t">Cosa vale nel tuo caso?</h2>
+        <p>Raccontaci la tua storia lavorativa: entro due giorni lavorativi ti diciamo quale consulenza serve e quanto costa.</p>
+        <a class="btn btn-accent" href="/questionario/">Compila il questionario</a>
+      </section>
+    </div>
+  </article>
+
+  <section class="wrap altre" aria-labelledby="altre-t">
+    <h2 id="altre-t">Altre guide</h2>
+    <ul>
+      {altre.map((a) => (
+        <li><a href={`/guide/${a.id}/`}><span class="g-arg">{a.data.argomento}</span><span class="g-tit">{a.data.titolo}</span></a></li>
+      ))}
+    </ul>
+  </section>
+</Base>
+
+<style>
+  .art { display: grid; grid-template-columns: 15rem minmax(0, 42rem); gap: 0 clamp(2rem, 6vw, 6rem); padding-block: 1.5rem clamp(4rem, 8vw, 6rem); }
+  .art-head { grid-column: 1 / -1; display: grid; gap: 1rem; max-width: 52rem; margin-bottom: clamp(2.5rem, 5vw, 4rem); padding-bottom: 2rem; border-bottom: 1px solid var(--line-strong); }
+  .art-head h1 { font-size: clamp(2.3rem, 3.5vw + 1rem, 3.75rem); }
+  .art-head .lead { max-width: 52ch; }
+  .art-arg { color: var(--accent-ink); font-weight: 650; }
+  .art-meta { color: var(--ink-2); font-size: 0.95rem; }
+
+  .art-toc { position: sticky; top: 7rem; align-self: start; }
+  .toc-t { font-weight: 700; margin-bottom: 0.75rem; }
+  .art-toc ol { list-style: none; padding: 0; border-left: 1px solid var(--line-strong); display: grid; }
+  .art-toc a { display: block; padding: 0.4rem 0 0.4rem 1rem; margin-left: -1px; border-left: 2px solid transparent; color: var(--ink-2); text-decoration: none; font-size: 0.95rem; line-height: 1.35; }
+  .art-toc a:hover { color: var(--ink); border-color: var(--line-strong); }
+  .art-toc a[aria-current] { color: var(--primary); border-color: var(--primary); font-weight: 650; }
+
+  .art-body { display: grid; gap: 2.5rem; }
+  .in-breve { background: var(--paper); border-top: 3px solid var(--accent); padding: clamp(1.25rem, 3vw, 2rem); }
+  .in-breve h2 { font-size: 1.4rem; margin-bottom: 0.75rem; }
+  .in-breve ul { padding-left: 1.2em; display: grid; gap: 0.6rem; }
+  .in-breve li::marker { color: var(--accent); }
+
+  /* Testo dell'articolo: serif per una lettura lunga, interlinea più ampia */
+  .prosa { font-family: var(--font-head); font-size: 1.22rem; line-height: 1.7; font-variation-settings: 'opsz' 16; }
+  .prosa > :global(* + *) { margin-top: 1.1em; }
+  .prosa :global(h2) { font-size: clamp(1.6rem, 1vw + 1.2rem, 2rem); margin-top: 2.2em; scroll-margin-top: 7rem; }
+  .prosa :global(h2:first-child) { margin-top: 0; }
+  .prosa :global(ul), .prosa :global(ol) { padding-left: 1.3em; display: grid; gap: 0.5em; }
+  .prosa :global(li::marker) { color: var(--accent-ink); font-family: var(--font-body); font-weight: 700; }
+  .prosa :global(strong) { font-weight: 600; }
+  .prosa :global(table) {
+    width: 100%; border-collapse: collapse; font-family: var(--font-body); font-size: 0.95rem; line-height: 1.45;
+    display: block; overflow-x: auto; margin-block: 1.75em;
+  }
+  .prosa :global(th), .prosa :global(td) { text-align: left; vertical-align: top; padding: 0.75rem 1rem 0.75rem 0; border-bottom: 1px solid var(--line); min-width: 9rem; }
+  .prosa :global(thead th) { border-bottom: 2px solid var(--ink); font-weight: 700; }
+  .prosa :global(tbody th), .prosa :global(td:first-child) { font-weight: 650; color: var(--ink); }
+
+  .art-nota { color: var(--ink-2); font-size: 0.95rem; padding-top: 1.5rem; border-top: 1px solid var(--line); }
+  .art-cta { background: var(--deep); color: #d7e3df; padding: clamp(1.5rem, 4vw, 2.5rem); display: grid; gap: 1rem; justify-items: start; }
+  .art-cta h2 { color: #fff; font-size: 1.9rem; }
+
+  .altre { padding-bottom: clamp(4rem, 8vw, 6rem); }
+  .altre h2 { font-size: 1.8rem; margin-bottom: 1.25rem; }
+  .altre ul { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+  .altre a { display: grid; gap: 0.5rem; padding-top: 1rem; border-top: 1px solid var(--ink); color: var(--ink); text-decoration: none; }
+  .altre a:hover .g-tit { text-decoration: underline; text-decoration-thickness: 1px; }
+  .g-arg { color: var(--accent-ink); font-weight: 650; font-size: 0.9rem; }
+  .g-tit { font-family: var(--font-head); font-size: 1.35rem; line-height: 1.2; }
+
+  @media (max-width: 58rem) {
+    .art { grid-template-columns: 1fr; }
+    .art-toc { position: static; margin-bottom: 2rem; }
+    .altre ul { grid-template-columns: 1fr; }
+  }
+</style>
+
+<script>
+  // evidenzia nell'indice la sezione che si sta leggendo
+  const links = [...document.querySelectorAll<HTMLAnchorElement>('.art-toc a')];
+  const sezioni = links.map((a) => document.getElementById(decodeURIComponent(a.hash.slice(1)))!).filter(Boolean);
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      if (!e.isIntersecting) return;
+      links.forEach((a) => (decodeURIComponent(a.hash.slice(1)) === e.target.id ? a.setAttribute('aria-current', 'true') : a.removeAttribute('aria-current')));
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  sezioni.forEach((s) => io.observe(s));
+</script>

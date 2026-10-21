@@ -1,0 +1,11 @@
+{
+  "name": "pensioni",
+  "private": true,
+  "type": "module",
+  "scripts": { "dev": "astro dev", "build": "astro build", "preview": "astro preview" },
+  "dependencies": {
+    "@tutela/shared": "*",
+    "@astrojs/sitemap": "^3.7.4",
+    "astro": "~7.3.8"
+  }
+}

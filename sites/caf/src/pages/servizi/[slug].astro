@@ -1,0 +1,87 @@
+---
+import Base from '../../layouts/Base.astro';
+import Promemoria from '../../components/Promemoria.astro';
+import { servizi, type Servizio } from '../../data/servizi';
+import { azienda, telLink } from '@tutela/shared/azienda.ts';
+
+export const getStaticPaths = () => servizi.map((s) => ({ params: { slug: s.slug }, props: { s } }));
+const { s } = Astro.props as { s: Servizio };
+const correlati = servizi.filter((x) => x.categoria === s.categoria && x.slug !== s.slug);
+---
+<Base title={s.nome} description={`${s.sintesi} Documenti da portare, costi e prenotazione a Palazzolo sull'Oglio.`}>
+  <div class="wrap">
+    <nav class="crumbs no-print" aria-label="Percorso">
+      <ol><li><a href="/">Home</a></li><li><a href="/servizi/">Servizi</a></li><li aria-current="page">{s.nome}</li></ol>
+    </nav>
+  </div>
+
+  <article class="wrap servizio">
+    <div class="servizio-main">
+      <header class="servizio-head">
+        <p class="servizio-cat">{s.categoria}</p>
+        <h1>{s.nome}</h1>
+        <p class="lead">{s.sintesi}</p>
+      </header>
+
+      <dl class="fatti">
+        <div><dt>Costo</dt><dd class:list={{ 'prezzo-free': s.prezzo === 'Gratuito' }}>{s.prezzo}</dd></div>
+        <div><dt>Durata dell'appuntamento</dt><dd>{s.durata}</dd></div>
+        <div><dt>Per chi</dt><dd>{s.perChi}</dd></div>
+      </dl>
+
+      <div class="servizio-desc">
+        <h2>Come funziona</h2>
+        {s.descrizione.map((p) => <p>{p}</p>)}
+        {s.slug === 'domanda-pensione' && (
+          <p><a href={azienda.siti.pensioni.url}>Scopri la consulenza pensionistica</a></p>
+        )}
+      </div>
+
+      <div class="servizio-docs" style="--bg-behind: var(--bg)">
+        <Promemoria iniziale={s.slug} solo titolo="Cosa portare all'appuntamento" />
+      </div>
+    </div>
+
+    <aside class="servizio-side no-print" aria-label="Prenota">
+      <div class="side-box">
+        <h2>Prenota per {s.nome}</h2>
+        <p>Scegli il giorno che preferisci, ti richiamiamo entro un giorno lavorativo per confermare.</p>
+        <a class="btn btn-primary" href={`/prenota/?servizio=${s.slug}`}>Prenota un appuntamento</a>
+        <p class="side-or">oppure chiama il <a href={telLink}>{azienda.telefono}</a></p>
+      </div>
+      {correlati.length > 0 && (
+        <nav class="correlati" aria-labelledby="corr-t">
+          <h2 id="corr-t">Nella stessa area</h2>
+          <ul>{correlati.map((c) => <li><a href={`/servizi/${c.slug}/`}>{c.nome}</a></li>)}</ul>
+        </nav>
+      )}
+    </aside>
+  </article>
+</Base>
+
+<style>
+  .servizio { display: grid; grid-template-columns: minmax(0, 1fr) 20rem; gap: clamp(2rem, 5vw, 5rem); padding-block: 1.5rem clamp(4rem, 8vw, 6rem); align-items: start; }
+  .servizio-main { display: grid; gap: 2.5rem; }
+  .servizio-head { display: grid; gap: 0.9rem; }
+  .servizio-cat { color: var(--primary); font-weight: 650; }
+  .servizio-head .lead { max-width: 50ch; }
+  .fatti { display: grid; grid-template-columns: auto auto 1fr; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .fatti div { background: var(--bg); padding: 1rem 1.25rem; }
+  .fatti dt { color: var(--ink-2); font-size: 0.9rem; }
+  .fatti dd { font-weight: 700; font-size: 1.1rem; }
+  .fatti div:last-child dd { font-weight: 400; font-size: 1rem; }
+  @media (max-width: 40rem) { .fatti { grid-template-columns: 1fr 1fr; } .fatti div:last-child { grid-column: 1 / -1; } }
+  .servizio-desc { display: grid; gap: 1rem; max-width: 65ch; }
+  .servizio-desc h2 { font-size: 1.5rem; }
+  .servizio-docs { max-width: 44rem; }
+  .servizio-side { position: sticky; top: 6.5rem; display: grid; gap: 2rem; }
+  .side-box { display: grid; gap: 0.9rem; padding: 1.5rem; background: var(--surface); border-radius: var(--radius); }
+  .side-box h2 { font-size: 1.25rem; }
+  .side-box p { color: var(--ink-2); }
+  .side-or { font-size: 0.95rem; }
+  .correlati h2 { font-size: 1rem; margin-bottom: 0.5rem; }
+  .correlati ul { list-style: none; padding: 0; }
+  .correlati li { border-top: 1px solid var(--line); }
+  .correlati a { display: block; padding: 0.7rem 0; font-weight: 600; }
+  @media (max-width: 60rem) { .servizio { grid-template-columns: 1fr; } .servizio-side { position: static; } }
+</style>

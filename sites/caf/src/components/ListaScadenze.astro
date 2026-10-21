@@ -1,0 +1,115 @@
+---
+// Scadenze in ordine di vicinanza. Il build le ordina con la sua data; nel browser
+// lo script le riordina con la data di oggi, così la pagina statica non invecchia.
+import { scadenze } from '../data/scadenze';
+import { servizioDa } from '../data/servizi';
+import { prossime, traQuanto, meseBreve, giornoSettimana } from '../lib/scadenze';
+
+interface Props { max?: number; compatta?: boolean; }
+const { max, compatta = false } = Astro.props;
+const lista = prossime(scadenze);
+const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+---
+<ol class:list={['scad-list', { compatta }]} data-scadenze data-max={max}>
+  {lista.map((s, i) => {
+    const servizio = servizioDa(s.servizio)!;
+    return (
+      <li
+        class="scad"
+        id={compatta ? undefined : `s-${s.id}`}
+        data-id={s.id} data-giorno={s.giorno} data-mese={s.mese} data-apertura={s.apertura ? '1' : undefined}
+        data-categoria={s.categoria}
+        hidden={max !== undefined && i >= max}
+      >
+        <div class="foglio" aria-hidden="true">
+          <span class="foglio-mese" data-f-mese>{meseBreve(s.data)}</span>
+          <span class="foglio-giorno" data-f-giorno>{s.data.getDate()}</span>
+          <span class="foglio-sett" data-f-sett>{giornoSettimana(s.data)}</span>
+        </div>
+        <div class="scad-body">
+          <p class="scad-meta">
+            <span class="scad-quando" data-quando>{traQuanto(s.giorni)}</span>
+            <time datetime={iso(s.data)} data-time class="vh">{s.data.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' })}</time>
+            {!compatta && <span class="scad-cat" data-cat={s.categoria}>{s.categoria}</span>}
+          </p>
+          <h3>{s.titolo}</h3>
+          {!compatta && <p class="scad-testo">{s.testo}</p>}
+          {!compatta && (
+            <div class="scad-actions">
+              <button type="button" class="link-btn" data-ics>Aggiungi al calendario</button>
+              <a href={`/prenota/?servizio=${servizio.slug}`}>Prenota: {servizio.nome}</a>
+            </div>
+          )}
+        </div>
+      </li>
+    );
+  })}
+</ol>
+
+<script>
+  import { scadenze } from '../data/scadenze';
+  import { prossime, traQuanto, meseBreve, giornoSettimana, ics } from '../lib/scadenze';
+
+  const lista = prossime(scadenze);
+  const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+  document.querySelectorAll<HTMLOListElement>('[data-scadenze]').forEach((ol) => {
+    const max = ol.dataset.max ? Number(ol.dataset.max) : Infinity;
+    lista.forEach((p, i) => {
+      const li = ol.querySelector<HTMLElement>(`[data-id="${p.id}"]`)!;
+      ol.append(li); // riordina
+      li.hidden = i >= max;
+      li.toggleAttribute('data-vicina', p.giorni <= 14);
+      li.querySelector('[data-f-mese]')!.textContent = meseBreve(p.data);
+      li.querySelector('[data-f-giorno]')!.textContent = String(p.data.getDate());
+      li.querySelector('[data-f-sett]')!.textContent = giornoSettimana(p.data);
+      li.querySelector('[data-quando]')!.textContent = traQuanto(p.giorni);
+      const t = li.querySelector<HTMLTimeElement>('[data-time]')!;
+      t.dateTime = iso(p.data);
+      t.textContent = p.data.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
+      li.querySelector('[data-ics]')?.addEventListener('click', () => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([ics(p)], { type: 'text/calendar' }));
+        a.download = `${p.id}.ics`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+      });
+    });
+  });
+</script>
+
+<style>
+  .scad-list { list-style: none; padding: 0; display: grid; }
+  .scad { display: grid; grid-template-columns: auto 1fr; gap: 1.25rem; align-items: start; padding-block: 1.25rem; border-top: 1px solid var(--line); }
+  .compatta { grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1.5rem 2rem; }
+  .compatta .scad { border: 0; padding: 0; align-items: center; gap: 1rem; }
+  .scad:target { background: var(--paper); box-shadow: -1rem 0 0 var(--paper), 1rem 0 0 var(--paper); }
+
+  /* Foglio di calendario a strappo: anelli in alto, mese su fascia verde */
+  .foglio {
+    position: relative; width: 4.5rem; display: grid; text-align: center; background: #fff;
+    border-radius: 6px; overflow: hidden; box-shadow: 0 1px 0 var(--line-strong), 0 10px 20px -14px rgb(19 34 30 / 0.5);
+    border: 1px solid var(--line);
+  }
+  .foglio::before, .foglio::after {
+    content: ''; position: absolute; top: 0.3rem; width: 0.4rem; height: 0.4rem; border-radius: 50%; background: var(--bg-behind, var(--bg));
+    box-shadow: inset 0 1px 1px rgb(0 0 0 / 0.35);
+  }
+  .foglio::before { left: 1.1rem; }
+  .foglio::after { right: 1.1rem; }
+  .foglio-mese { background: var(--primary); color: #fff; font-weight: 700; font-size: 0.85rem; padding: 0.85rem 0 0.2rem; text-transform: lowercase; }
+  .foglio-giorno { font-size: 2rem; font-weight: 750; line-height: 1; letter-spacing: -0.03em; padding-top: 0.45rem; }
+  .foglio-sett { font-size: 0.8rem; color: var(--ink-2); padding-bottom: 0.45rem; }
+  .scad[data-vicina] .foglio-mese { background: var(--danger); }
+
+  .scad-body { display: grid; gap: 0.3rem; min-width: 0; }
+  .scad-meta { display: flex; flex-wrap: wrap; gap: 0.5rem 0.75rem; align-items: center; font-size: 0.925rem; }
+  .scad-quando { font-weight: 700; color: var(--primary); }
+  .scad[data-vicina] .scad-quando { background: var(--marker); color: var(--ink); padding: 0.05rem 0.5rem; border-radius: 3px; }
+  .scad-cat { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--ink-2); }
+  .scad-cat::before { content: ''; width: 0.6rem; height: 0.6rem; border-radius: 50%; background: var(--cat, var(--primary)); }
+  .scad h3 { font-size: 1.15rem; }
+  .scad-testo { color: var(--ink-2); max-width: 60ch; }
+  .scad-actions { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; margin-top: 0.4rem; font-weight: 650; font-size: 0.975rem; }
+  .link-btn { background: none; border: 0; padding: 0; color: var(--primary); text-decoration: underline; text-underline-offset: 0.18em; cursor: pointer; font-weight: 650; }
+</style>

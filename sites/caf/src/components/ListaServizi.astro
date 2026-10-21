@@ -1,0 +1,47 @@
+---
+import { servizi, categorie } from '../data/servizi';
+import { azienda, telLink } from '@tutela/shared/azienda.ts';
+---
+<div class="cat-grid">
+  {categorie.map((c) => (
+    <section class="cat">
+      <h3>{c}</h3>
+      <ul>
+        {servizi.filter((s) => s.categoria === c).map((s) => (
+          <li>
+            <a href={`/servizi/${s.slug}/`}>
+              <span class="cat-nome">{s.nome}</span>
+              <span class:list={['cat-prezzo', { 'prezzo-free': s.prezzo === 'Gratuito' }]}>{s.prezzo}</span>
+              <span class="cat-sintesi">{s.sintesi}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  ))}
+  <section class="cat cat-aiuto">
+    <h3>Non trovi quello che cerchi?</h3>
+    <p>Facciamo anche pratiche meno comuni: bonus, rimborsi, ricorsi, dichiarazioni integrative. Chiedici.</p>
+    <p><a href={telLink}>Chiama {azienda.telefono}</a></p>
+    <p><a href={`https://wa.me/${azienda.whatsapp}`}>Scrivici su WhatsApp</a></p>
+  </section>
+</div>
+
+<style>
+  .cat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 21rem), 1fr)); gap: 3rem 2.5rem; }
+  .cat h3 { padding-bottom: 0.75rem; border-bottom: 2px solid var(--ink); }
+  .cat ul { list-style: none; padding: 0; }
+  .cat li { border-bottom: 1px solid var(--line); }
+  .cat a {
+    display: grid; grid-template-columns: 1fr auto; gap: 0.2rem 1rem; padding: 1rem 0.5rem 1rem 0;
+    color: var(--ink); text-decoration: none;
+  }
+  .cat-nome { font-weight: 700; font-size: 1.1rem; }
+  .cat-prezzo { color: var(--ink-2); font-size: 0.95rem; white-space: nowrap; padding-top: 0.1rem; }
+  .cat-sintesi { grid-column: 1 / -1; color: var(--ink-2); font-size: 0.975rem; line-height: 1.45; }
+  .cat a:hover .cat-nome { color: var(--primary); text-decoration: underline; text-underline-offset: 0.18em; }
+  .cat-aiuto { align-self: start; padding: 1.5rem; background: var(--surface); border-radius: var(--radius); display: grid; gap: 0.75rem; }
+  .cat-aiuto h3 { border: 0; padding: 0; }
+  .cat-aiuto p:first-of-type { color: var(--ink-2); }
+  .cat-aiuto a { display: inline; padding: 0; font-weight: 650; color: var(--primary); text-decoration: underline; }
+</style>

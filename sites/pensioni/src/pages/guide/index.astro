@@ -1,0 +1,51 @@
+---
+import Base from '../../layouts/Base.astro';
+import { guideOrdinate, minutiLettura } from '../../lib/guide';
+
+const guide = await guideOrdinate();
+---
+<Base title="Guide alla pensione" description="Guide chiare su estratto conto INPS, riscatto della laurea, cumulo dei contributi e versamenti volontari.">
+  <div class="wrap">
+    <nav class="crumbs" aria-label="Percorso"><ol><li><a href="/">Home</a></li><li aria-current="page">Guide</li></ol></nav>
+  </div>
+
+  <section class="wrap g-hero">
+    <h1>Guide alla pensione</h1>
+    <p class="lead">Le regole che contano, spiegate senza giri di parole. Per capire la tua situazione prima di decidere, e sapere che domande fare.</p>
+  </section>
+
+  <section class="wrap g-list" aria-label="Elenco delle guide">
+    <ul>
+      {guide.map((g) => (
+        <li>
+          <a href={`/guide/${g.id}/`}>
+            <span class="g-arg">{g.data.argomento}</span>
+            <span class="g-tit">{g.data.titolo}</span>
+            <span class="g-som">{g.data.sommario}</span>
+            <span class="g-min">{minutiLettura(g)} minuti di lettura</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+</Base>
+
+<style>
+  .g-hero { display: grid; gap: 1rem; padding-block: 1.5rem clamp(2.5rem, 5vw, 4rem); }
+  .g-list { padding-bottom: clamp(4rem, 8vw, 7rem); }
+  .g-list ul { list-style: none; padding: 0; border-top: 1px solid var(--ink); }
+  .g-list li { border-bottom: 1px solid var(--line-strong); }
+  .g-list a {
+    display: grid; grid-template-columns: 10rem 1fr auto; gap: 0.5rem 2rem; align-items: baseline;
+    padding: clamp(1.5rem, 3vw, 2.25rem) 0; color: var(--ink); text-decoration: none;
+  }
+  .g-arg { color: var(--accent-ink); font-weight: 650; font-size: 0.95rem; }
+  .g-tit { font-family: var(--font-head); font-size: clamp(1.5rem, 1.5vw + 1rem, 2.1rem); line-height: 1.15; letter-spacing: -0.015em; text-wrap: balance; transition: color 0.15s; }
+  .g-som { grid-column: 2; color: var(--ink-2); max-width: 60ch; }
+  .g-min { grid-column: 3; grid-row: 1; color: var(--ink-2); font-size: 0.9rem; white-space: nowrap; }
+  .g-list a:hover .g-tit { color: var(--primary); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.15em; }
+  @media (max-width: 48rem) {
+    .g-list a { grid-template-columns: 1fr; }
+    .g-som, .g-min { grid-column: auto; grid-row: auto; }
+  }
+</style>

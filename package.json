@@ -1,0 +1,11 @@
+{
+  "name": "tutela-previdenziale-siti",
+  "private": true,
+  "workspaces": ["shared", "sites/*"],
+  "scripts": {
+    "dev:caf": "npm run dev -w caf",
+    "dev:pensioni": "npm run dev -w pensioni",
+    "build": "npm run build -w caf && npm run build -w pensioni"
+  },
+  "engines": { "node": ">=22.12" }
+}

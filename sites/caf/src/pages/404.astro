@@ -1,0 +1,20 @@
+---
+import Base from '../layouts/Base.astro';
+import { azienda, telLink } from '@tutela/shared/azienda.ts';
+---
+<Base title="Pagina non trovata" description="La pagina che cerchi non esiste.">
+  <div class="wrap nf">
+    <h1>Questa pagina non esiste</h1>
+    <p class="lead">Forse l'indirizzo è cambiato. Puoi ripartire dai servizi o chiamarci al <a href={telLink}>{azienda.telefono}</a>.</p>
+    <div class="nf-cta">
+      <a class="btn btn-primary" href="/servizi/">Vedi tutti i servizi</a>
+      <a class="btn btn-ghost" href="/">Torna alla home</a>
+    </div>
+  </div>
+</Base>
+
+<style>
+  .nf { padding-block: clamp(4rem, 10vw, 8rem); display: grid; gap: 1.5rem; justify-items: start; }
+  .nf .lead { max-width: 46ch; }
+  .nf-cta { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+</style>

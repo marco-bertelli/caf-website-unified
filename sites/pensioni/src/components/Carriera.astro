@@ -1,0 +1,159 @@
+---
+// Esempio di carriera contributiva: il "prima" di una consulenza. Dati di fantasia, stime indicative.
+const da = 1985, a = 2040;
+const x = (anno: number) => `${((anno - da) / (a - da)) * 100}%`;
+const w = (inizio: number, fine: number) => `${((fine - inizio) / (a - da)) * 100}%`;
+
+const segmenti = [
+  { da: 1986, a: 1991, tipo: 'laurea', nome: 'Laurea' },
+  { da: 1991, a: 2002, tipo: 'privato', nome: 'Dipendente privato' },
+  { da: 2002, a: 2005, tipo: 'separata', nome: 'Collaborazioni, Gestione separata' },
+  { da: 2005, a: 2007, tipo: 'buco', nome: 'Nessun contributo' },
+  { da: 2007, a: 2026, tipo: 'pubblico', nome: 'Dipendente pubblico' },
+  { da: 2026, a: 2033, tipo: 'futuro', nome: 'Anni ancora da lavorare' },
+];
+const note = [
+  { anno: 1988.5, titolo: 'Riscattare la laurea?', testo: 'Cinque anni di studi possono anticipare l\'uscita di circa tre anni. Il riscatto costa ma è deducibile: calcoliamo se conviene.' },
+  { anno: 2003.2, titolo: 'Tre gestioni diverse', testo: 'Privato, Gestione separata e pubblico si sommano con il cumulo, che è gratuito. Senza, alcuni anni rischiano di non contare.' },
+  { anno: 2006.3, titolo: 'Due anni scoperti', testo: 'Cerchiamo contributi non registrati, disoccupazione o maternità che possono coprire il buco.' },
+  { anno: 2031.5, titolo: 'Due date possibili', testo: 'Pensione anticipata con il riscatto o di vecchiaia senza: le confrontiamo con l\'importo netto di ciascuna.' },
+];
+const uscite = [
+  { anno: 2030, testo: 'Pensione anticipata', stato: 'si' },
+  { anno: 2033, testo: 'Vecchiaia', stato: 'no' },
+];
+const tacche = [1990, 2000, 2010, 2020, 2030, 2040];
+---
+<figure class="carriera">
+  <figcaption class="carriera-head">
+    <span><strong>Esempio di analisi.</strong> Laura, 60 anni, impiegata in un ente pubblico.</span>
+    <span class="carriera-nb">Persona e stime di fantasia</span>
+  </figcaption>
+
+  <fieldset class="prova">
+    <legend>Prova: e se Laura riscattasse la laurea?</legend>
+    <div class="prova-switch">
+      <label><input class="vh" type="radio" name="riscatto" value="no" checked /><span>Senza riscatto</span></label>
+      <label><input class="vh" type="radio" name="riscatto" value="si" /><span>Con il riscatto</span></label>
+    </div>
+    <p class="prova-esito" aria-live="polite">
+      <span class="se-no">Senza riscatto Laura va in pensione nel <strong>2033</strong>, a 67 anni.</span>
+      <span class="se-si">Con il riscatto esce nel <strong>2030</strong>, a 64 anni: tre anni prima. Conviene? Dipende da costo e reddito, ed è quello che calcoliamo.</span>
+    </p>
+  </fieldset>
+
+  <div class="carriera-chart" role="img" aria-label="Carriera di Laura dal 1986 a oggi: laurea non riscattata, undici anni da dipendente privata, tre in Gestione separata, due anni senza contributi, poi diciannove da dipendente pubblica. Uscita possibile nel 2030 con il riscatto della laurea, altrimenti nel 2033 con la pensione di vecchiaia.">
+    <div class="pins">
+      {note.map((n, i) => <span class="pin" style={`left:${x(n.anno)}; --i:${i}`}>{i + 1}</span>)}
+    </div>
+    <div class="track">
+      {segmenti.map((s, i) => <span class={`seg seg-${s.tipo}`} style={`left:${x(s.da)}; width:${w(s.da, s.a)}; --i:${i}`}></span>)}
+      <span class="oggi" style={`left:${x(2026)}`}><span>Oggi</span></span>
+    </div>
+    <div class="exits">
+      {uscite.map((u) => <span class="exit" data-stato={u.stato} style={`left:${x(u.anno)}`}><b>{u.anno}</b><span>{u.testo}</span></span>)}
+    </div>
+    <div class="axis">
+      {tacche.map((t) => <span style={`left:${x(t)}`}>{t}</span>)}
+    </div>
+  </div>
+
+  <ul class="legend" aria-hidden="true">
+    {segmenti.map((s) => <li><span class={`sw seg-${s.tipo}`}></span><span>{s.nome}{s.tipo === 'laurea' && <><span class="se-no">, non riscattata</span><span class="se-si">, riscattata</span></>}</span></li>)}
+  </ul>
+
+  <ol class="note">
+    {note.map((n, i) => (
+      <li><span class="pin pin-static" aria-hidden="true">{i + 1}</span><h3>{n.titolo}</h3><p>{n.testo}</p></li>
+    ))}
+  </ol>
+</figure>
+
+<style>
+  .carriera { background: var(--paper); border: 1px solid var(--line); padding: clamp(1.25rem, 3.5vw, 2.75rem); display: grid; gap: 1.75rem; }
+  .carriera-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem 2rem; color: var(--ink-2); }
+  .carriera-head strong { color: var(--ink); }
+  .carriera-nb { font-size: 0.9rem; }
+
+  .carriera-chart { position: relative; padding-top: 2.4rem; }
+  .pins { position: absolute; inset: 0 0 auto; height: 2rem; }
+  .pin {
+    position: absolute; transform: translateX(-50%); width: 1.75rem; height: 1.75rem; border-radius: 50%;
+    display: grid; place-items: center; background: var(--accent); color: var(--ink);
+    font-weight: 750; font-size: 0.875rem; line-height: 1;
+  }
+  .pins .pin::after { content: ''; position: absolute; top: 100%; left: 50%; width: 1px; height: 0.6rem; background: var(--accent); }
+  .pin-static { position: static; transform: none; }
+
+  .track { position: relative; height: 3.25rem; background: repeating-linear-gradient(90deg, transparent 0 calc(100% / 55 - 1px), rgb(22 32 29 / 0.06) calc(100% / 55 - 1px) calc(100% / 55)); }
+  .seg { position: absolute; top: 0; bottom: 0; }
+  .seg-laurea { background: repeating-linear-gradient(-45deg, var(--accent) 0 2px, transparent 2px 7px); box-shadow: inset 0 0 0 1.5px var(--accent); }
+  .seg-privato { background: var(--seg-privato); }
+  .seg-separata { background: var(--seg-separata); }
+  .seg-buco { background: transparent; box-shadow: inset 0 0 0 1.5px var(--danger); background-image: linear-gradient(transparent 46%, var(--danger) 46% 54%, transparent 54%); opacity: 0.75; }
+  .seg-pubblico { background: var(--seg-pubblico); }
+  .seg-futuro { background: repeating-linear-gradient(90deg, var(--seg-pubblico) 0 6px, transparent 6px 10px); opacity: 0.35; }
+  .oggi { position: absolute; top: -0.5rem; bottom: -0.5rem; width: 2px; background: var(--ink); }
+  .oggi span { position: absolute; bottom: 100%; right: 0.4rem; font-size: 0.8rem; font-weight: 650; white-space: nowrap; }
+
+  .exits { position: relative; height: 3.25rem; }
+  .exit { position: absolute; top: 0; padding-top: 0.75rem; border-left: 2px solid var(--accent); padding-left: 0.4rem; font-size: 0.85rem; line-height: 1.25; white-space: nowrap; }
+  /* la prima uscita ha l'etichetta a sinistra della linea, la seconda a destra */
+  .exit:first-child { transform: translateX(-100%); border-left: 0; border-right: 2px solid var(--accent); padding: 0.75rem 0.4rem 0 0; text-align: right; }
+  .exit b { display: block; font-size: 1rem; }
+  .exit span { color: var(--ink-2); }
+
+  .axis { position: relative; height: 1.25rem; border-top: 1px solid var(--line-strong); font-size: 0.8rem; color: var(--ink-2); }
+  .axis span { position: absolute; top: 0.2rem; transform: translateX(-50%); }
+  .axis span:last-child { transform: translateX(-100%); }
+
+
+  /* Prova interattiva: il riscatto riempie la laurea, accorcia gli anni da lavorare e sposta l'uscita */
+  .prova { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 0.75rem 1.5rem; padding: 1rem 1.25rem; background: var(--bg); border-left: 3px solid var(--accent); }
+  .prova legend { float: left; font-family: var(--font-head); font-size: 1.3rem; grid-column: 1 / -1; padding: 0; }
+  .prova-switch { display: inline-flex; border: 1.5px solid var(--primary); border-radius: 999px; padding: 3px; background: var(--paper); }
+  .prova-switch span { display: block; padding: 0.45rem 1rem; border-radius: 999px; font-weight: 650; cursor: pointer; transition: background-color 0.2s, color 0.2s; white-space: nowrap; }
+  .prova-switch :checked + span { background: var(--primary); color: #fff; }
+  .prova-switch :focus-visible + span { outline: 3px solid var(--focus); outline-offset: 2px; }
+  .prova-esito { color: var(--ink-2); max-width: 62ch; }
+  .prova-esito strong { color: var(--ink); }
+  .se-si { display: none; }
+  .carriera:has([value='si']:checked) .se-si { display: inline; }
+  .carriera:has([value='si']:checked) .se-no { display: none; }
+
+  .seg-laurea, .seg-futuro { transition: background 0.4s, opacity 0.4s, clip-path 0.6s cubic-bezier(0.3, 0.7, 0.2, 1); }
+  .seg-futuro { clip-path: inset(0 0 0 0); }
+  .carriera:has([value='si']:checked) .seg-laurea { background: var(--accent); }
+  .carriera:has([value='si']:checked) .seg-futuro { clip-path: inset(0 42.86% 0 0); }
+  .exit { transition: opacity 0.4s; }
+  .exit[data-stato='si'] { opacity: 0; }
+  .carriera:has([value='si']:checked) .exit[data-stato='si'] { opacity: 1; }
+  .carriera:has([value='si']:checked) .exit[data-stato='no'] { opacity: 0.35; }
+  .carriera:has([value='si']:checked) .exit[data-stato='no'] b { text-decoration: line-through; }
+  @media (max-width: 36rem) { .prova { grid-template-columns: 1fr; } }
+
+  .legend { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; font-size: 0.9rem; color: var(--ink-2); }
+  .legend li { display: flex; align-items: center; gap: 0.5rem; }
+  .sw { width: 1.4rem; height: 0.8rem; display: inline-block; flex: none; position: relative; }
+
+  .note { list-style: none; padding: 1.75rem 0 0; border-top: 1px solid var(--line); display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.75rem; }
+  .note li { display: grid; gap: 0.5rem; align-content: start; }
+  .note h3 { font-size: 1.2rem; }
+  .note p { color: var(--ink-2); font-size: 0.975rem; line-height: 1.5; }
+  @media (max-width: 64rem) { .note { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 36rem) {
+    .note { grid-template-columns: 1fr; }
+    .exit span { display: none; }
+    .axis span:nth-child(even) { display: none; }
+    .pins .pin { width: 1.3rem; height: 1.3rem; font-size: 0.75rem; }
+  }
+
+  /* L'unico momento animato del sito: la carriera si disegna da sinistra a destra */
+  @media (prefers-reduced-motion: no-preference) {
+    .seg { transform-origin: left; animation: disegna 0.55s cubic-bezier(0.3, 0.7, 0.2, 1) both; animation-delay: calc(0.25s + var(--i) * 0.28s); }
+    .pins .pin, .exit, .oggi { animation: appare 0.4s ease-out both; animation-delay: 2s; }
+    .pins .pin { animation-delay: calc(2s + var(--i) * 0.12s); }
+    @keyframes disegna { from { transform: scaleX(0); } }
+    @keyframes appare { from { opacity: 0; } }
+  }
+</style>

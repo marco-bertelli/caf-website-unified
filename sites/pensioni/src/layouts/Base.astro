@@ -1,0 +1,88 @@
+---
+import '../styles/pensioni.css';
+import Head from '@tutela/shared/Head.astro';
+import Logo from '@tutela/shared/Logo.astro';
+import { azienda, indirizzoCompleto } from '@tutela/shared/azienda.ts';
+
+interface Props { title: string; description: string; }
+const { title, description } = Astro.props;
+const { nome, linea } = azienda.siti.pensioni;
+const path = Astro.url.pathname;
+const links = [
+  { href: '/#come-funziona', label: 'Come funziona' },
+  { href: '/#tariffe', label: 'Tariffe' },
+  { href: '/guide/', label: 'Guide' },
+  { href: '/studi-commercialisti/', label: 'Per i commercialisti' },
+];
+---
+<!doctype html>
+<html lang="it">
+  <head>
+    <Head title={title} description={description} siteName={nome} themeColor="#0D3B33">
+      <slot name="head" />
+    </Head>
+  </head>
+  <body>
+    <a class="skip" href="#main">Vai al contenuto</a>
+    <header class="site-header">
+      <div class="wrap nav">
+        <a class="brand" href="/" aria-label={`${nome}, ${linea}, home`}>
+          <Logo />
+          <span><strong>{nome}</strong><small>{linea}</small></span>
+        </a>
+        <nav class="nav-links" aria-label="Principale">
+          {links.map((l) => <a href={l.href} aria-current={path.startsWith(l.href) ? 'page' : undefined}>{l.label}</a>)}
+        </nav>
+        {path !== '/questionario/' && <a class="btn btn-primary" href="/questionario/">Compila il questionario</a>}
+        <details class="nav-mobile">
+          <summary>Menu</summary>
+          <nav aria-label="Principale">
+            {links.map((l) => <a href={l.href}>{l.label}</a>)}
+            <a class="btn btn-primary" href="/questionario/">Compila il questionario</a>
+          </nav>
+        </details>
+      </div>
+    </header>
+
+    <main id="main"><slot /></main>
+
+    <footer class="site-footer">
+      <div class="wrap">
+        <div class="footer-grid">
+          <div class="footer-brand">
+            <a class="brand" href="/"><Logo /><span><strong>{nome}</strong><small>{linea}</small></span></a>
+            <p>Consulenza pensionistica online, dalla sede di {azienda.citta}.</p>
+          </div>
+          <div>
+            <h2>Contatti</h2>
+            <ul>
+              <li><a href={`mailto:${azienda.email}`}>{azienda.email}</a></li>
+              <li><a href={`tel:+39${azienda.telefono.replace(/\s/g, '')}`}>{azienda.telefono}</a></li>
+              <li>{indirizzoCompleto}</li>
+            </ul>
+          </div>
+          <div>
+            <h2>Consulenza</h2>
+            <ul>
+              <li><a href="/questionario/">Compila il questionario</a></li>
+              <li><a href="/#tariffe">Tariffe</a></li>
+              <li><a href="/guide/">Guide alla pensione</a></li>
+              <li><a href="/studi-commercialisti/">Per i commercialisti</a></li>
+            </ul>
+          </div>
+          <div>
+            <h2>{azienda.siti.caf.linea}</h2>
+            <ul>
+              <li><a href={azienda.siti.caf.url}>730, ISEE e pratiche INPS in ufficio</a></li>
+              <li><a href="/privacy/">Privacy e cookie</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <span>© {new Date().getFullYear()} {azienda.ragioneSociale}. P.IVA {azienda.piva}</span>
+          <span>Le stime contenute nelle relazioni si basano sulla normativa in vigore alla data della consulenza.</span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

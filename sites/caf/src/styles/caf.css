@@ -1,0 +1,87 @@
+@import '@tutela/shared/base.css';
+
+:root {
+  --bg: #ffffff;
+  --surface: #f1f5f3;
+  --ink: #13221e;
+  --ink-2: #4a5b56;
+  --line: #dce4e1;
+  --line-strong: #a9b8b3;
+  --primary: #0e5a4b;
+  --primary-hover: #0a473b;
+  --primary-ink: #ffffff;
+  --deep: #0b3d33;
+  --paper: #fff7cf;
+  --paper-line: #e9d98a;
+  --marker: #f5d84a;
+  --focus: #13221e;
+  --danger: #b42318;
+  --radius: 6px;
+  --wrap: 74rem;
+  --font-body: 'Atkinson Hyperlegible Next Variable', system-ui, sans-serif;
+  --font-head: var(--font-body);
+  --footer-ink: #c9d8d3;
+}
+
+h1, h2, h3 { font-weight: 750; letter-spacing: -0.02em; }
+h1 { font-size: clamp(2.3rem, 4.6vw + 0.6rem, 3.9rem); line-height: 1.05; letter-spacing: -0.03em; }
+h2 { font-size: clamp(1.75rem, 2.2vw + 0.9rem, 2.5rem); }
+h3 { font-size: 1.2rem; letter-spacing: -0.01em; }
+.lead { font-size: clamp(1.1rem, 0.5vw + 1rem, 1.3rem); color: var(--ink-2); max-width: 36ch; }
+
+.section { padding-block: clamp(3.5rem, 7vw, 6.5rem); }
+.section-head { display: grid; gap: 0.75rem; margin-bottom: clamp(2rem, 4vw, 3rem); max-width: 44rem; }
+.section-head p { color: var(--ink-2); font-size: 1.125rem; }
+.tint { background: var(--surface); }
+
+/* Promemoria: la lista dei documenti */
+.promemoria {
+  --pad: clamp(1.25rem, 3vw, 2rem);
+  position: relative; background: var(--paper); border-radius: 4px 4px 10px 10px;
+  box-shadow: 0 1px 0 var(--paper-line), 0 22px 40px -24px rgb(60 50 0 / 0.45);
+  padding: calc(var(--pad) + 0.5rem) var(--pad) var(--pad);
+}
+/* bordo perforato in alto, come un foglietto strappato dal blocco */
+.promemoria::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 10px;
+  background: radial-gradient(circle at 7px -1px, var(--bg-behind, #fff) 5px, transparent 5.5px) 0 0 / 14px 10px repeat-x;
+}
+.promemoria-head { display: grid; gap: 0.6rem; margin-bottom: 1.25rem; }
+.promemoria-title { font-size: 1.35rem; letter-spacing: -0.015em; }
+.promemoria select { background: #fff; border-color: #cbbd6b; font-weight: 650; }
+.promemoria-list { display: grid; gap: 1.1rem; }
+.promemoria-group h4 { font-size: 0.95rem; color: #5b5326; font-weight: 650; margin-bottom: 0.45rem; }
+.promemoria-group ul { list-style: none; padding: 0; display: grid; }
+.promemoria-group li { border-top: 1px dashed #dccc78; }
+.promemoria-group li:last-child { border-bottom: 1px dashed #dccc78; }
+.promemoria .check { padding: 0.5rem 0; line-height: 1.4; }
+.promemoria .check:has(:checked) span { text-decoration: line-through; text-decoration-color: rgb(19 34 30 / 0.45); color: #6b6640; }
+.promemoria-scroll { max-height: 22rem; overflow-y: auto; margin-inline: calc(var(--pad) * -1); padding-inline: var(--pad); overscroll-behavior: contain; }
+.promemoria[data-solo] .promemoria-scroll { max-height: none; overflow: visible; }
+@media (max-width: 60rem) { .promemoria-scroll { max-height: none; overflow: visible; } }
+.promemoria-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1rem; margin-top: 1.25rem; padding-top: 1rem; border-top: 2px solid var(--ink); }
+.promemoria-count { font-weight: 650; margin-right: auto; }
+.promemoria-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.promemoria .btn-ghost { background: transparent; }
+.promemoria .btn-ghost:hover { background: rgb(255 255 255 / 0.6); }
+.promemoria-note { margin-top: 1rem; font-size: 0.95rem; color: #5b5326; }
+@media (prefers-reduced-motion: no-preference) {
+  .promemoria-list:not([hidden]) { animation: foglio 0.25s ease-out; }
+  @keyframes foglio { from { opacity: 0; transform: translateY(6px); } }
+}
+
+@media print {
+  body.stampa-lista * { visibility: hidden; }
+  body.stampa-lista [data-stampa], body.stampa-lista [data-stampa] * { visibility: visible; }
+  body.stampa-lista [data-stampa] { position: absolute; inset: 0 0 auto; box-shadow: none; background: #fff; }
+  body.stampa-lista .promemoria-scroll { max-height: none; overflow: visible; }
+  .promemoria::before { display: none; }
+}
+
+/* Colori delle categorie di scadenza */
+[data-cat='Dichiarazioni'] { --cat: #0e5a4b; }
+[data-cat='Casa'] { --cat: #b7791f; }
+[data-cat='Famiglia'] { --cat: #9b3b5a; }
+[data-cat='Colf e badanti'] { --cat: #3c6e91; }
+
+.prezzo-free { color: var(--primary); font-weight: 650; }

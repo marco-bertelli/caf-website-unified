@@ -1,0 +1,271 @@
+---
+import Base from '../layouts/Base.astro';
+import Carriera from '../components/Carriera.astro';
+import { pacchetti, tempi, consulente } from '../data/consulenza';
+import { azienda } from '@tutela/shared/azienda.ts';
+import { guideOrdinate } from '../lib/guide';
+
+const guide = (await guideOrdinate()).slice(0, 3);
+
+const situazioni = [
+  { t: 'Hai lavorato sia da dipendente sia in proprio', d: 'Contributi in gestioni diverse vanno messi insieme nel modo giusto, o alcuni anni non contano.' },
+  { t: 'Pensi di uscire prima', d: 'Ti diciamo se puoi, da quando e quanto perdi rispetto a restare fino alla vecchiaia.' },
+  { t: 'Devi decidere se riscattare la laurea', d: 'Calcoliamo costo, risparmio fiscale e quanti mesi di anticipo ti fa guadagnare.' },
+  { t: 'Hai lavorato all\'estero', d: 'Verifichiamo gli accordi tra Paesi e come i contributi esteri si sommano a quelli italiani.' },
+  { t: 'Sei un professionista con una cassa', d: 'Ingegneri, architetti, avvocati, medici: mettiamo in fila cassa professionale e INPS.' },
+  { t: 'Il tuo estratto conto non ti torna', d: 'Troviamo i periodi mancanti e ti diciamo come chiedere all\'INPS di correggerli.' },
+];
+
+const passi = [
+  { t: 'Compili il questionario', d: 'Ci racconti la tua storia lavorativa e cosa vuoi sapere. Non servono documenti per iniziare.', tempo: '15 minuti' },
+  { t: 'Ricevi il preventivo', d: 'Ti diciamo quale consulenza serve, quanto costa e quali documenti mandarci. Se non ti convince, finisce qui.', tempo: `entro ${tempi.preventivo}` },
+  { t: 'Confermi l\'incarico', d: 'Accetti il preventivo e paghi con bonifico. Ci autorizzi a consultare la tua posizione INPS con una delega.', tempo: '' },
+  { t: 'Il consulente analizza la tua posizione', d: 'Verifica l\'estratto conto, segnala gli errori e simula le uscite possibili con la normativa in vigore.', tempo: '' },
+  { t: 'Relazione e videochiamata', d: 'Ricevi la relazione scritta e ne parli con il consulente: puoi fare tutte le domande che vuoi.', tempo: `${tempi.relazione} dal pagamento` },
+];
+
+const indice = [
+  'La tua posizione contributiva, verificata',
+  'Requisiti e date di uscita possibili',
+  'Importo stimato, lordo e netto, per ogni uscita',
+  'Le scelte che possono migliorare la pensione',
+  'Prossimi passi e scadenze',
+];
+
+const faq = [
+  { q: 'Che differenza c\'è con il patronato?', a: 'Il patronato presenta le domande quando hai già i requisiti, ed è gratuito. La consulenza viene prima: analizza tutta la carriera, confronta le alternative e ti dice cosa conviene fare, anche anni prima della pensione.' },
+  { q: 'Devo venire in ufficio?', a: `No, si fa tutto online: questionario, documenti via email e videochiamata. Se preferisci, l'incontro finale può essere nella nostra sede di ${azienda.citta}.` },
+  { q: 'Quali documenti servono?', a: 'Soprattutto l\'estratto conto contributivo INPS. Se non sai come scaricarlo lo facciamo noi con una delega. Il resto te lo chiediamo con il preventivo, solo se serve.' },
+  { q: 'Le stime sono garantite?', a: 'Le stime si basano sulla normativa in vigore e sui dati INPS al momento dell\'analisi. Se le regole cambiano prima della tua uscita, con il piano su misura riprendiamo la pratica nella seconda videochiamata.' },
+  { q: 'Come trattate i miei dati?', a: 'Solo per la consulenza, da personale autorizzato, senza cederli a nessuno. Trovi tutto nell\'informativa privacy.' },
+];
+---
+<Base
+  title={`${azienda.nome}: consulenza pensionistica online`}
+  description="Scopri quando potrai andare in pensione e con quale importo. Analisi della storia contributiva, relazione scritta e videochiamata con il consulente."
+>
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero-top">
+        <h1>Sapere quando andrai in pensione, e con quanto.</h1>
+        <div class="hero-side">
+          <p class="lead">Analizziamo tutta la tua storia contributiva e ti diciamo quali strade hai e quale conviene. Ricevi una relazione scritta e ne parli con il consulente in videochiamata.</p>
+          <div class="hero-cta">
+            <a class="btn btn-primary" href="/questionario/">Compila il questionario</a>
+            <a class="btn btn-ghost" href="#come-funziona">Come funziona</a>
+          </div>
+        </div>
+      </div>
+      <Carriera />
+    </div>
+  </section>
+
+  <section class="section paper-bg" aria-labelledby="chi-t">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="chi-t">Per chi ha una carriera che non sta in una riga</h2>
+        <p>Il simulatore dell'INPS funziona bene per le storie lineari. Quando ci sono più gestioni, buchi, riscatti o scelte da fare, serve qualcuno che le guardi una per una.</p>
+      </div>
+      <ul class="situazioni">
+        {situazioni.map((s) => <li><h3>{s.t}</h3><p>{s.d}</p></li>)}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" id="come-funziona" aria-labelledby="come-t">
+    <div class="wrap come">
+      <div class="section-head come-head">
+        <h2 id="come-t">Come funziona</h2>
+        <p>Tutto online, dal questionario alla videochiamata. Paghi solo dopo aver visto e accettato il preventivo.</p>
+        <a class="btn btn-primary" href="/questionario/">Compila il questionario</a>
+      </div>
+      <ol class="steps">
+        {passi.map((p, i) => (
+          <li>
+            <span class="step-n" aria-hidden="true">{i + 1}</span>
+            <h3>{p.t}</h3>
+            <p>{p.d}</p>
+            {p.tempo && <p class="step-time">{p.tempo}</p>}
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <section class="section dark" aria-labelledby="ricevi-t">
+    <div class="wrap ricevi">
+      <div class="ricevi-text">
+        <h2 id="ricevi-t">Una relazione scritta, da tenere</h2>
+        <p>Non un numero buttato lì: un documento che spiega la tua posizione, le alternative e cosa fare, con le cifre per ciascuna scelta. Lo puoi rileggere, mostrare in famiglia o al tuo commercialista.</p>
+        <p>Poi una videochiamata di {tempi.videochiamata} con il consulente che l'ha scritta, per chiarire ogni dubbio.</p>
+      </div>
+      <div class="relazione" aria-label="Indice di una relazione previdenziale">
+        <p class="rel-kicker">Relazione previdenziale</p>
+        <p class="rel-name">Laura R., nata nel 1966</p>
+        <ol>{indice.map((v) => <li>{v}</li>)}</ol>
+        <div class="rel-lines" aria-hidden="true"><span></span><span></span><span></span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="tariffe" aria-labelledby="tariffe-t">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="tariffe-t">Tariffe</h2>
+        <p>Prezzi IVA inclusa. Dopo il questionario ti confermiamo quale consulenza serve davvero e il prezzo esatto, prima di qualsiasi pagamento.</p>
+      </div>
+      <div class="pacchetti">
+        {pacchetti.map((p) => (
+          <article class:list={['pacchetto', { consigliato: p.consigliato }]}>
+            {p.consigliato && <p class="badge">Il più richiesto</p>}
+            <h3>{p.nome}</h3>
+            <p class="prezzo">{p.prezzo}</p>
+            <p class="per-chi">{p.perChi}</p>
+            <ul>{p.include.map((i) => <li>{i}</li>)}</ul>
+            <a class:list={['btn', p.consigliato ? 'btn-primary' : 'btn-ghost']} href={`/questionario/?pacchetto=${p.id}`}>Inizia dal questionario</a>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section paper-bg" aria-labelledby="cons-t">
+    <div class="wrap"><div class="consulente">
+      <div class="monogramma" aria-hidden="true">{consulente.nome.split(' ').map((p) => p[0]).join('')}</div>
+      <div>
+        <h2 id="cons-t">Chi segue la tua pratica</h2>
+        <p class="cons-name"><strong>{consulente.nome}</strong>, {consulente.ruolo.toLowerCase()}</p>
+        <p>{consulente.bio}</p>
+        <p>Lavoriamo dalla nostra sede di {azienda.citta}, dove c'è anche il nostro <a href={azienda.siti.caf.url}>CAF e Patronato</a>: quando arriva il momento, la domanda di pensione la presentiamo noi.</p>
+      </div>
+    </div></div>
+  </section>
+
+  <section class="section guide-band" aria-labelledby="guide-t">
+    <div class="wrap">
+      <div class="guide-head">
+        <h2 id="guide-t">Prima di decidere, leggi</h2>
+        <a href="/guide/">Tutte le guide</a>
+      </div>
+      <ul class="guide-teaser">
+        {guide.map((g) => (
+          <li><a href={`/guide/${g.id}/`}><span class="gt-arg">{g.data.argomento}</span><span class="gt-tit">{g.data.titolo}</span><span class="gt-som">{g.data.sommario}</span></a></li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="faq-t">
+    <div class="wrap faq-grid">
+      <h2 id="faq-t">Domande frequenti</h2>
+      <div class="faq">
+        {faq.map((f) => <details><summary>{f.q}</summary><div><p>{f.a}</p></div></details>)}
+      </div>
+    </div>
+  </section>
+
+  <section class="studi-band" aria-labelledby="studi-t">
+    <div class="wrap studi-grid">
+      <div>
+        <h2 id="studi-t">Sei un commercialista?</h2>
+        <p>Offri ai tuoi clienti anche la pianificazione della pensione, con un canale riservato e tempi di risposta garantiti.</p>
+      </div>
+      <a class="btn btn-ghost" href="/studi-commercialisti/">Scopri la convenzione per gli studi</a>
+    </div>
+  </section>
+
+  <section class="section final" aria-labelledby="fine-t">
+    <div class="wrap final-in">
+      <h2 id="fine-t">Inizia da quindici minuti di domande.</h2>
+      <p class="lead">Il questionario è gratuito e non ti impegna a nulla.</p>
+      <a class="btn btn-primary" href="/questionario/">Compila il questionario</a>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero { padding-block: clamp(2.5rem, 6vw, 5rem) clamp(4rem, 8vw, 6.5rem); }
+  .hero-top { display: grid; grid-template-columns: 1.25fr 1fr; gap: 2rem clamp(2rem, 5vw, 5rem); align-items: end; margin-bottom: clamp(2.5rem, 5vw, 4rem); }
+  .hero-top h1 { max-width: 16ch; }
+  .hero-side { display: grid; gap: 1.5rem; padding-bottom: 0.4rem; }
+  .hero-cta { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+  @media (max-width: 58rem) { .hero-top { grid-template-columns: 1fr; } }
+
+  .situazioni { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 clamp(1.5rem, 3vw, 3rem); }
+  .situazioni li { padding-block: 1.5rem; border-top: 1px solid var(--line-strong); display: grid; gap: 0.5rem; align-content: start; }
+  .situazioni h3 { font-size: 1.35rem; }
+  .situazioni p { color: var(--ink-2); }
+  @media (max-width: 58rem) { .situazioni { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 36rem) { .situazioni { grid-template-columns: 1fr; } }
+
+  .come { display: grid; grid-template-columns: 0.85fr 1.15fr; gap: 3rem clamp(2rem, 6vw, 6rem); align-items: start; }
+  .come-head { position: sticky; top: 7rem; justify-items: start; }
+  @media (max-width: 58rem) { .come { grid-template-columns: 1fr; } .come-head { position: static; } }
+
+  .ricevi { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem clamp(2rem, 6vw, 6rem); align-items: center; }
+  .ricevi-text { display: grid; gap: 1.25rem; max-width: 34rem; }
+  .ricevi-text h2 { margin-bottom: 0.25rem; }
+  .relazione {
+    background: var(--paper); color: var(--ink); padding: clamp(1.75rem, 4vw, 3rem); aspect-ratio: 1 / 1.25; max-width: 26rem; justify-self: center; width: 100%;
+    box-shadow: 0 30px 60px -30px rgb(0 0 0 / 0.6); rotate: 1.5deg; display: grid; align-content: start; gap: 0.5rem;
+  }
+  .rel-kicker { font-family: var(--font-head); font-size: 1.6rem; line-height: 1.1; }
+  .rel-name { color: var(--ink-2); font-size: 0.9rem; padding-bottom: 1.25rem; border-bottom: 2px solid var(--accent); margin-bottom: 1rem; }
+  .relazione ol { padding-left: 1.3em; display: grid; gap: 0.7rem; font-size: 0.975rem; }
+  .relazione li::marker { color: var(--accent-ink); font-weight: 750; }
+  .rel-lines { display: grid; gap: 0.55rem; margin-top: 1.5rem; }
+  .rel-lines span { height: 0.4rem; background: var(--surface); border-radius: 2px; }
+  .rel-lines span:nth-child(2) { width: 85%; }
+  .rel-lines span:nth-child(3) { width: 60%; }
+  @media (max-width: 58rem) { .ricevi { grid-template-columns: 1fr; } }
+
+  .pacchetti { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--line-strong); background: var(--paper); }
+  .pacchetto { padding: clamp(1.5rem, 3vw, 2.25rem); display: flex; flex-direction: column; gap: 0.75rem; position: relative; }
+  .pacchetto + .pacchetto { border-left: 1px solid var(--line-strong); }
+  .pacchetto.consigliato { box-shadow: inset 0 4px 0 var(--primary); }
+  .badge { position: absolute; top: 1rem; right: 1.25rem; font-size: 0.85rem; font-weight: 650; color: var(--primary); }
+  .pacchetto h3 { padding-right: 6rem; }
+  .prezzo { font-family: var(--font-head); font-size: 2.75rem; line-height: 1; letter-spacing: -0.02em; }
+  .per-chi { color: var(--ink-2); min-height: 3.2em; }
+  .pacchetto ul { flex: 1; list-style: none; padding: 1rem 0 0.5rem; border-top: 1px solid var(--line); display: grid; gap: 0.55rem; align-content: start; }
+  .pacchetto li { padding-left: 1.6rem; position: relative; }
+  .pacchetto li::before { content: ''; position: absolute; left: 0.15rem; top: 0.45em; width: 0.7rem; height: 0.4rem; border-left: 2px solid var(--primary); border-bottom: 2px solid var(--primary); rotate: -45deg; }
+  @media (max-width: 58rem) {
+    .pacchetti { grid-template-columns: 1fr; }
+    .pacchetto + .pacchetto { border-left: 0; border-top: 1px solid var(--line-strong); }
+    .per-chi { min-height: 0; }
+  }
+
+  .consulente { display: grid; grid-template-columns: auto 1fr; gap: 2rem clamp(2rem, 5vw, 4rem); align-items: start; max-width: 56rem; }
+  .consulente > div { display: grid; gap: 1rem; }
+  .consulente p { max-width: 60ch; color: var(--ink-2); }
+  .consulente .cons-name { color: var(--ink); }
+  .monogramma {
+    width: clamp(6rem, 14vw, 10rem); aspect-ratio: 1; border-radius: 50%; background: var(--primary); color: var(--accent);
+    display: grid; place-items: center; font-family: var(--font-head); font-size: clamp(2.2rem, 5vw, 3.5rem);
+  }
+  @media (max-width: 36rem) { .consulente { grid-template-columns: 1fr; } }
+
+  .guide-band { padding-bottom: 0; }
+  .guide-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 1rem; margin-bottom: 2rem; }
+  .guide-head a { font-weight: 650; }
+  .guide-teaser { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem clamp(1.5rem, 3vw, 3rem); }
+  .guide-teaser a { display: grid; gap: 0.6rem; align-content: start; padding-top: 1.25rem; border-top: 2px solid var(--ink); color: var(--ink); text-decoration: none; }
+  .gt-arg { color: var(--accent-ink); font-weight: 650; font-size: 0.9rem; }
+  .gt-tit { font-family: var(--font-head); font-size: 1.55rem; line-height: 1.15; letter-spacing: -0.01em; }
+  .gt-som { color: var(--ink-2); font-size: 0.975rem; }
+  .guide-teaser a:hover .gt-tit { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.15em; }
+  @media (max-width: 58rem) { .guide-teaser { grid-template-columns: 1fr; } }
+
+  .faq-grid { display: grid; grid-template-columns: 0.7fr 1.3fr; gap: 2rem 4rem; }
+  @media (max-width: 52rem) { .faq-grid { grid-template-columns: 1fr; } }
+
+  .studi-band { background: var(--surface); padding-block: clamp(2.5rem, 5vw, 3.5rem); }
+  .studi-grid { display: grid; grid-template-columns: 1fr auto; gap: 1.5rem 3rem; align-items: center; }
+  .studi-grid h2 { font-size: clamp(1.6rem, 2vw + 0.8rem, 2.2rem); margin-bottom: 0.5rem; }
+  .studi-grid p { color: var(--ink-2); max-width: 56ch; }
+  @media (max-width: 52rem) { .studi-grid { grid-template-columns: 1fr; } .studi-grid .btn { justify-self: start; } }
+
+  .final-in { display: grid; gap: 1.25rem; justify-items: center; text-align: center; }
+  .final-in h2 { max-width: 18ch; }
+</style>

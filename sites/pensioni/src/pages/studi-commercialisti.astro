@@ -1,0 +1,130 @@
+---
+import Base from '../layouts/Base.astro';
+import { azienda } from '@tutela/shared/azienda.ts';
+
+const { studi } = azienda;
+const vantaggi = [
+  { t: 'Un referente, una linea diretta', d: `Email e telefono dedicati agli studi convenzionati, senza passare dal centralino. Rispondiamo entro ${studi.rispostaEntro}.` },
+  { t: 'Priorità sulle pratiche', d: 'I clienti che arrivano con il codice del tuo studio passano davanti nella coda delle analisi.' },
+  { t: 'Tariffe riservate', d: 'I tuoi clienti pagano meno del listino pubblico. Lo studio non anticipa nulla e non fattura nulla.' },
+  { t: 'La relazione anche allo studio', d: 'Con il consenso del cliente ti mandiamo una copia: pianifichi fiscalità e pensione insieme.' },
+  { t: 'Il cliente resta tuo', d: 'Ci occupiamo solo della parte previdenziale. Non offriamo servizi fiscali o contabili ai clienti dello studio.' },
+  { t: 'Aggiornamenti previdenziali', d: 'Una nota breve quando cambiano regole che toccano i tuoi clienti: uscite anticipate, riscatti, cumulo.' },
+];
+const passi = [
+  { t: 'Richiedi la convenzione', d: 'Compili il modulo in questa pagina: ci bastano pochi dati dello studio.' },
+  { t: 'Ci conosciamo', d: 'Una videochiamata di 20 minuti per capire che clienti seguite e come lavorare insieme.' },
+  { t: 'Ricevi il codice studio', d: 'Con i contatti dedicati e un testo pronto da girare ai clienti.' },
+  { t: 'Segnali i clienti', d: 'Compilano il questionario con il tuo codice, oppure ci scrivi tu direttamente con il loro consenso.' },
+];
+---
+<Base title="Per i commercialisti" description="Convenzione per studi commercialisti: canale dedicato, priorità sulle pratiche e tariffe riservate per la consulenza pensionistica dei vostri clienti.">
+  <div class="wrap">
+    <nav class="crumbs" aria-label="Percorso"><ol><li><a href="/">Home</a></li><li aria-current="page">Per i commercialisti</li></ol></nav>
+  </div>
+
+  <section class="wrap s-hero">
+    <h1>Un canale riservato per gli studi che seguono clienti vicini alla pensione.</h1>
+    <div class="s-hero-side">
+      <p class="lead">Voi conoscete redditi e patrimonio del cliente, noi la sua storia contributiva. Insieme gli date una pianificazione completa, e lo studio offre un servizio in più senza doverlo costruire.</p>
+      <a class="btn btn-primary" href="#convenzione">Richiedi la convenzione</a>
+    </div>
+  </section>
+
+  <section class="section paper-bg" aria-labelledby="vant-t">
+    <div class="wrap">
+      <div class="section-head"><h2 id="vant-t">Cosa ottiene lo studio</h2></div>
+      <ul class="vantaggi">
+        {vantaggi.map((v) => <li><h3>{v.t}</h3><p>{v.d}</p></li>)}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" id="convenzione" aria-labelledby="conv-t">
+    <div class="wrap conv">
+      <div class="conv-side">
+        <h2 id="conv-t">Come si attiva</h2>
+        <ol class="steps">
+          {passi.map((p, i) => <li><span class="step-n" aria-hidden="true">{i + 1}</span><h3>{p.t}</h3><p>{p.d}</p></li>)}
+        </ol>
+        <div class="linea">
+          <p><strong>Preferisci parlarne subito?</strong></p>
+          <p><a href={`mailto:${studi.email}`}>{studi.email}</a></p>
+          <p><a href={`tel:+39${studi.telefono.replace(/\s/g, '')}`}>{studi.telefono}</a></p>
+        </div>
+      </div>
+
+      <div class="conv-form">
+        <form class="form" data-endpoint={azienda.form.studi} novalidate>
+          <h3>Richiesta di convenzione</h3>
+          <input type="hidden" name="_subject" value="Richiesta convenzione studio" />
+          <input class="hp" type="text" name="_gotcha" tabindex="-1" autocomplete="off" aria-hidden="true" />
+          <div class="field"><label for="studio">Nome dello studio</label><input id="studio" name="studio" autocomplete="organization" required /></div>
+          <div class="row">
+            <div class="field"><label for="piva">Partita IVA</label><input id="piva" name="piva" inputmode="numeric" required pattern="[0-9]{11}" title="11 cifre" /></div>
+            <div class="field"><label for="citta">Comune</label><input id="citta" name="comune" autocomplete="address-level2" required /></div>
+          </div>
+          <div class="field"><label for="ref">Referente</label><input id="ref" name="referente" autocomplete="name" required /></div>
+          <div class="row">
+            <div class="field"><label for="semail">Email</label><input id="semail" name="email" type="email" autocomplete="email" required /></div>
+            <div class="field"><label for="stel">Telefono</label><input id="stel" name="telefono" type="tel" autocomplete="tel" required pattern="[0-9 +()./-]{6,}" /></div>
+          </div>
+          <div class="field">
+            <label for="clienti">Quanti clienti potrebbero averne bisogno in un anno?</label>
+            <select id="clienti" name="clienti_anno" required>
+              <option value="">Scegli</option>
+              <option>Fino a 10</option>
+              <option>Da 10 a 30</option>
+              <option>Più di 30</option>
+              <option>Non saprei</option>
+            </select>
+          </div>
+          <div class="field"><label for="msg">Messaggio <span class="req">(facoltativo)</span></label><textarea id="msg" name="messaggio"></textarea></div>
+          <label class="check">
+            <input type="checkbox" name="privacy" value="accettata" required />
+            <span>Ho letto l'<a href="/privacy/">informativa privacy</a> e acconsento a essere ricontattato.</span>
+          </label>
+          <p class="form-error" data-error tabindex="-1" hidden>
+            La richiesta non è partita. Riprova, oppure scrivici a <a href={`mailto:${studi.email}`}>{studi.email}</a>.
+          </p>
+          <button class="btn btn-primary" type="submit">Richiedi la convenzione</button>
+        </form>
+        <div class="success" data-success tabindex="-1" hidden>
+          <h2>Richiesta ricevuta</h2>
+          <p>Ti scriviamo entro {studi.rispostaEntro} per fissare la videochiamata conoscitiva.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script>
+  import { wireForms } from '@tutela/shared/form.ts';
+  wireForms();
+</script>
+
+<style>
+  .s-hero { display: grid; grid-template-columns: 1.3fr 1fr; gap: 2rem clamp(2rem, 5vw, 5rem); align-items: end; padding-block: 2rem clamp(4rem, 7vw, 6rem); }
+  .s-hero h1 { font-size: clamp(2.3rem, 4vw + 0.6rem, 3.9rem); max-width: 16ch; }
+  .s-hero-side { display: grid; gap: 1.5rem; justify-items: start; }
+  @media (max-width: 58rem) { .s-hero { grid-template-columns: 1fr; } }
+
+  .vantaggi { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 clamp(1.5rem, 3vw, 3rem); }
+  .vantaggi li { padding-block: 1.5rem; border-top: 1px solid var(--line-strong); display: grid; gap: 0.5rem; align-content: start; }
+  .vantaggi h3 { font-size: 1.35rem; }
+  .vantaggi p { color: var(--ink-2); }
+  @media (max-width: 58rem) { .vantaggi { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 36rem) { .vantaggi { grid-template-columns: 1fr; } }
+
+  .conv { display: grid; grid-template-columns: 1fr 1.1fr; gap: 3rem clamp(2rem, 6vw, 6rem); align-items: start; }
+  .conv-side { display: grid; gap: 2.25rem; }
+  .linea { padding: 1.5rem; background: var(--surface); display: grid; gap: 0.35rem; }
+  .conv-form { background: var(--paper); border: 1px solid var(--line); padding: clamp(1.5rem, 4vw, 2.5rem); }
+  .conv-form .success { padding: 0; border: 0; }
+  .form { display: grid; gap: 1.25rem; }
+  .form h3 { font-size: 1.6rem; }
+  .form .btn[type=submit] { justify-self: start; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+  @media (max-width: 58rem) { .conv { grid-template-columns: 1fr; } }
+  @media (max-width: 36rem) { .row { grid-template-columns: 1fr; } }
+</style>

@@ -1,0 +1,310 @@
+---
+import Base from '../layouts/Base.astro';
+import { pacchetti, tempi } from '../data/consulenza';
+import { azienda } from '@tutela/shared/azienda.ts';
+
+const passi = ['Su di te', 'Il tuo lavoro', 'Cosa vuoi sapere', 'Documenti', 'Invio'];
+const situazioni = [
+  'Dipendente privato', 'Dipendente pubblico', 'Artigiano o commerciante', 'Libero professionista con cassa',
+  'Collaboratore o partita IVA in Gestione separata', 'Disoccupato', 'Già in pensione',
+];
+const gestioni = [
+  'INPS dipendenti privati', 'INPS dipendenti pubblici (ex INPDAP)', 'Artigiani o commercianti',
+  'Gestione separata', 'Cassa professionale', 'Contributi all\'estero', 'Non lo so',
+];
+const domande = [
+  'Quando posso andare in pensione', 'Con quale importo', 'Se posso uscire prima e quanto perdo',
+  'Se conviene riscattare la laurea o altri periodi', 'Se mi conviene versare contributi volontari',
+  'Fondo pensione e TFR', 'Pensione di reversibilità per il coniuge',
+];
+const anno = new Date().getFullYear();
+---
+<Base title="Questionario" description="Raccontaci la tua storia lavorativa in 15 minuti: ti mandiamo il preventivo per la consulenza pensionistica.">
+  <section class="wrap q">
+    <header class="q-head">
+      <h1>Questionario</h1>
+      <p class="lead">Quindici minuti per raccontarci la tua storia lavorativa. Entro {tempi.preventivo} ti mandiamo il preventivo: non paghi nulla e non ti impegni a niente.</p>
+    </header>
+
+    <div class="q-body">
+      <ol class="q-progress" aria-label="Passi del questionario" data-progress hidden>
+        {passi.map((p, i) => <li data-dot={i}><span>{p}</span></li>)}
+      </ol>
+
+      <form class="q-form" data-endpoint={azienda.form.questionario} novalidate>
+        <input type="hidden" name="_subject" value="Nuovo questionario previdenziale" />
+        <input class="hp" type="text" name="_gotcha" tabindex="-1" autocomplete="off" aria-hidden="true" />
+
+        <fieldset class="step" data-step="0">
+          <legend tabindex="-1"><span class="step-of">Passo 1 di 5</span> Su di te</legend>
+          <div class="row">
+            <div class="field"><label for="nome">Nome</label><input id="nome" name="nome" autocomplete="given-name" required /></div>
+            <div class="field"><label for="cognome">Cognome</label><input id="cognome" name="cognome" autocomplete="family-name" required /></div>
+          </div>
+          <div class="row">
+            <div class="field"><label for="nascita">Data di nascita</label><input id="nascita" name="data_nascita" type="date" autocomplete="bday" required min="1940-01-01" max={`${anno - 18}-12-31`} /></div>
+            <fieldset class="field">
+              <legend>Sesso <span class="req">(alcune regole cambiano)</span></legend>
+              <div class="choices inline">
+                <label class="choice"><input type="radio" name="sesso" value="Donna" required /> Donna</label>
+                <label class="choice"><input type="radio" name="sesso" value="Uomo" /> Uomo</label>
+              </div>
+            </fieldset>
+          </div>
+          <div class="field"><label for="comune">Comune di residenza</label><input id="comune" name="comune" autocomplete="address-level2" required /></div>
+          <div class="row">
+            <div class="field"><label for="email">Email</label><input id="email" name="email" type="email" autocomplete="email" required /><span class="hint">Qui ti mandiamo il preventivo.</span></div>
+            <div class="field"><label for="tel">Telefono</label><input id="tel" name="telefono" type="tel" autocomplete="tel" required pattern="[0-9 +()./-]{6,}" /></div>
+          </div>
+        </fieldset>
+
+        <fieldset class="step" data-step="1">
+          <legend tabindex="-1"><span class="step-of">Passo 2 di 5</span> Il tuo lavoro</legend>
+          <fieldset class="field">
+            <legend>Oggi sei</legend>
+            <div class="choices">
+              {situazioni.map((s, i) => <label class="choice"><input type="radio" name="situazione" value={s} required={i === 0} /> {s}</label>)}
+            </div>
+          </fieldset>
+          <div class="field narrow">
+            <label for="primo">Anno del primo lavoro con contributi</label>
+            <input id="primo" name="primo_contributo" type="number" inputmode="numeric" min="1955" max={anno} required />
+            <span class="hint">Anche un lavoro estivo o un apprendistato. Se non ricordi, va bene una stima.</span>
+          </div>
+          <fieldset class="field" data-group-required>
+            <legend>In quali gestioni hai versato contributi?</legend>
+            <span class="hint">Scegli tutte quelle che ricordi.</span>
+            <div class="choices two">
+              {gestioni.map((g) => <label class="choice"><input type="checkbox" name="gestioni" value={g} /> {g}</label>)}
+            </div>
+          </fieldset>
+          <fieldset class="field">
+            <legend>Laurea</legend>
+            <div class="choices">
+              <label class="choice"><input type="radio" name="laurea" value="Sì, non riscattata" required /> Sì, non l'ho riscattata</label>
+              <label class="choice"><input type="radio" name="laurea" value="Sì, riscattata" /> Sì, l'ho già riscattata in tutto o in parte</label>
+              <label class="choice"><input type="radio" name="laurea" value="No" /> No</label>
+            </div>
+          </fieldset>
+        </fieldset>
+
+        <fieldset class="step" data-step="2">
+          <legend tabindex="-1"><span class="step-of">Passo 3 di 5</span> Cosa vuoi sapere</legend>
+          <fieldset class="field" data-group-required>
+            <legend>Le tue domande</legend>
+            <span class="hint">Scegline almeno una.</span>
+            <div class="choices">
+              {domande.map((d) => <label class="choice"><input type="checkbox" name="domande" value={d} /> {d}</label>)}
+            </div>
+          </fieldset>
+          <div class="field narrow">
+            <label for="quando">Quando vorresti smettere di lavorare?</label>
+            <select id="quando" name="quando" required>
+              <option value="">Scegli</option>
+              <option>Il prima possibile</option>
+              <option>Entro 3 anni</option>
+              <option>Entro 5 anni</option>
+              <option>Non ho fretta, voglio pianificare</option>
+              <option>Sono già in pensione</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="storia">Raccontaci la tua situazione <span class="req">(facoltativo)</span></label>
+            <textarea id="storia" name="storia" rows="5" placeholder="Es. ho lavorato due anni in Germania, poi in fabbrica fino al 2010 e da allora ho una partita IVA."></textarea>
+          </div>
+        </fieldset>
+
+        <fieldset class="step" data-step="3">
+          <legend tabindex="-1"><span class="step-of">Passo 4 di 5</span> Documenti</legend>
+          <fieldset class="field">
+            <legend>Hai l'estratto conto contributivo INPS?</legend>
+            <span class="hint">È l'elenco di tutti i contributi versati. Non serve allegarlo ora.</span>
+            <div class="choices">
+              <label class="choice"><input type="radio" name="estratto" value="Sì, recente" required /> <span>Sì, l'ho scaricato da poco</span></label>
+              <label class="choice"><input type="radio" name="estratto" value="Posso scaricarlo con SPID" /> <span>No, ma ho lo SPID e posso scaricarlo<small>Ti spieghiamo come, passo per passo.</small></span></label>
+              <label class="choice"><input type="radio" name="estratto" value="Scaricatelo voi" /> <span>No, preferisco che lo scarichiate voi<small>Ti mandiamo una delega da firmare.</small></span></label>
+            </div>
+          </fieldset>
+          <fieldset class="field">
+            <legend>Sei iscritto a un fondo pensione?</legend>
+            <div class="choices inline">
+              <label class="choice"><input type="radio" name="fondo" value="Sì" required /> Sì</label>
+              <label class="choice"><input type="radio" name="fondo" value="No" /> No</label>
+              <label class="choice"><input type="radio" name="fondo" value="Non so" /> Non so</label>
+            </div>
+          </fieldset>
+        </fieldset>
+
+        <fieldset class="step" data-step="4">
+          <legend tabindex="-1"><span class="step-of">Passo 5 di 5</span> Invio</legend>
+          <fieldset class="field">
+            <legend>Quale consulenza ti interessa?</legend>
+            <div class="choices">
+              <label class="choice"><input type="radio" name="pacchetto" value="Da consigliare" checked /> <span>Non so, consigliatemi voi</span></label>
+              {pacchetti.map((p) => <label class="choice"><input type="radio" name="pacchetto" value={p.id} /> <span>{p.nome}, {p.prezzo}<small>{p.perChi}</small></span></label>)}
+            </div>
+          </fieldset>
+          <div class="field narrow">
+            <label for="codice">Codice studio <span class="req">(facoltativo)</span></label>
+            <input id="codice" name="codice_studio" autocomplete="off" />
+            <span class="hint">Se ti ha indirizzato da noi il tuo commercialista, inserisci il codice che ti ha dato.</span>
+          </div>
+          <fieldset class="field">
+            <legend>Come preferisci essere ricontattato?</legend>
+            <div class="choices inline">
+              <label class="choice"><input type="radio" name="contatto" value="Email" checked /> Email</label>
+              <label class="choice"><input type="radio" name="contatto" value="Telefono" /> Telefono</label>
+              <label class="choice"><input type="radio" name="contatto" value="WhatsApp" /> WhatsApp</label>
+            </div>
+          </fieldset>
+          <label class="check">
+            <input type="checkbox" name="privacy" value="accettata" required />
+            <span>Ho letto l'<a href="/privacy/" target="_blank">informativa privacy</a> e acconsento al trattamento dei miei dati, compresi eventuali dati sulla salute che ho indicato, per ricevere il preventivo.</span>
+          </label>
+        </fieldset>
+
+        <p class="form-error" data-error tabindex="-1" hidden>
+          Il questionario non è partito. Controlla la connessione e riprova: le risposte sono ancora qui. Se il problema continua scrivici a <a href={`mailto:${azienda.email}`}>{azienda.email}</a>.
+        </p>
+        <p class="form-error" data-step-error tabindex="-1" hidden></p>
+
+        <div class="q-nav">
+          <button type="button" class="btn btn-ghost" data-back hidden>Indietro</button>
+          <button type="button" class="btn btn-primary" data-next hidden>Continua</button>
+          <button type="submit" class="btn btn-primary" data-submit>Invia il questionario</button>
+        </div>
+      </form>
+
+      <div class="success" data-success tabindex="-1" hidden>
+        <h2>Questionario inviato</h2>
+        <p>Grazie. Entro {tempi.preventivo} ti mandiamo il preventivo con l'elenco dei documenti che ci servono.</p>
+        <a class="btn btn-ghost" href="/">Torna alla home</a>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script>
+  import { wireForms } from '@tutela/shared/form.ts';
+
+  const form = document.querySelector<HTMLFormElement>('.q-form')!;
+  const steps = [...form.querySelectorAll<HTMLFieldSetElement>('.step')];
+  const progress = document.querySelector<HTMLElement>('[data-progress]')!;
+  const back = form.querySelector<HTMLButtonElement>('[data-back]')!;
+  const next = form.querySelector<HTMLButtonElement>('[data-next]')!;
+  const submit = form.querySelector<HTMLButtonElement>('[data-submit]')!;
+  const stepError = form.querySelector<HTMLElement>('[data-step-error]')!;
+  let current = 0;
+
+  // pacchetto preselezionato dalla pagina tariffe
+  const p = new URLSearchParams(location.search).get('pacchetto');
+  form.querySelector<HTMLInputElement>(`input[name=pacchetto][value="${CSS.escape(p ?? '')}"]`)?.click();
+
+  // gruppi di checkbox con almeno una scelta obbligatoria
+  const groupOk = (scope: Element) =>
+    [...scope.querySelectorAll('[data-group-required]')].every((g) => g.querySelector('input:checked'));
+
+  const valid = (step: HTMLFieldSetElement) => {
+    step.setAttribute('data-touched', '');
+    const bad = [...step.querySelectorAll<HTMLInputElement>('input, select, textarea')].find((el) => !el.checkValidity());
+    if (bad) { bad.reportValidity(); return false; }
+    const group = [...step.querySelectorAll('[data-group-required]')].find((g) => !g.querySelector('input:checked'));
+    if (group) {
+      stepError.textContent = `Scegli almeno un'opzione per «${group.querySelector('legend')!.textContent}».`;
+      stepError.hidden = false;
+      group.querySelector('input')!.focus();
+      return false;
+    }
+    stepError.hidden = true;
+    return true;
+  };
+
+  const show = (i: number) => {
+    current = i;
+    steps.forEach((s, j) => (s.hidden = j !== i));
+    progress.querySelectorAll('li').forEach((li, j) => {
+      li.toggleAttribute('data-done', j < i);
+      if (j === i) li.setAttribute('aria-current', 'step'); else li.removeAttribute('aria-current');
+    });
+    back.hidden = i === 0;
+    next.hidden = i === steps.length - 1;
+    submit.hidden = i !== steps.length - 1;
+  };
+
+  // con JS il questionario va a passi; senza, resta una pagina unica
+  progress.hidden = false;
+  form.classList.add('stepped');
+  show(0);
+
+  next.addEventListener('click', () => {
+    if (!valid(steps[current])) return;
+    show(current + 1);
+    steps[current].querySelector<HTMLElement>('legend')!.focus();
+    form.scrollIntoView({ block: 'start' });
+  });
+  back.addEventListener('click', () => { stepError.hidden = true; show(current - 1); form.scrollIntoView({ block: 'start' }); });
+
+  // l'ultimo controllo sui gruppi prima dell'invio (il resto lo fa wireForms)
+  form.addEventListener('submit', (e) => {
+    if (current < steps.length - 1) {
+      // Invio premuto a metà questionario: vale come "Continua"
+      e.stopImmediatePropagation();
+      e.preventDefault();
+      next.click();
+      return;
+    }
+    if (!groupOk(form)) {
+      e.stopImmediatePropagation();
+      e.preventDefault();
+      const i = steps.findIndex((s) => !groupOk(s));
+      show(i);
+      valid(steps[i]);
+    }
+  });
+  wireForms();
+</script>
+
+<style>
+  .q { padding-block: clamp(2.5rem, 5vw, 4rem) clamp(4rem, 8vw, 6rem); }
+  .q-head { display: grid; gap: 1rem; margin-bottom: 2.5rem; max-width: 44rem; }
+  .q-body { display: grid; grid-template-columns: 14rem minmax(0, 40rem); gap: 2rem clamp(2rem, 6vw, 5rem); align-items: start; }
+  .q-body > .success { grid-column: 2; }
+
+  .q-progress { list-style: none; padding: 0; position: sticky; top: 7rem; display: grid; gap: 0; counter-reset: passo; }
+  .q-progress li { counter-increment: passo; display: flex; gap: 0.75rem; align-items: center; padding: 0.6rem 0; color: var(--ink-2); }
+  .q-progress li::before {
+    content: counter(passo); width: 2rem; height: 2rem; border-radius: 50%; flex: none; display: grid; place-items: center;
+    border: 1.5px solid var(--line-strong); font-size: 0.9rem; font-weight: 650; background: var(--bg);
+  }
+  .q-progress li[aria-current] { color: var(--ink); font-weight: 650; }
+  .q-progress li[aria-current]::before { border-color: var(--primary); background: var(--primary); color: #fff; }
+  .q-progress li[data-done]::before { content: '✓'; border-color: var(--primary); color: var(--primary); }
+
+  .q-form { display: grid; gap: 2rem; }
+  .step { display: grid; gap: 1.5rem; }
+  .q-form:not(.stepped) .step + .step { padding-top: 2rem; border-top: 1px solid var(--line); }
+  .step > legend { font-family: var(--font-head); font-size: clamp(1.7rem, 2vw + 1rem, 2.3rem); line-height: 1.1; margin-bottom: 1.5rem; display: grid; gap: 0.35rem; }
+  .step > legend:focus { outline: none; }
+  .step-of { font-family: var(--font-body); font-size: 0.95rem; color: var(--accent-ink); font-weight: 650; }
+  .field > legend { margin-bottom: 0.35rem; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  .narrow { max-width: 22rem; }
+  .choices.inline { display: flex; flex-wrap: wrap; }
+  .choices.inline .choice { flex: 1 1 6rem; }
+  .choices.two { grid-template-columns: 1fr 1fr; }
+  .choice span { display: grid; gap: 0.1rem; }
+  .q-nav { display: flex; gap: 0.75rem; flex-wrap: wrap; padding-top: 1.5rem; border-top: 1px solid var(--line); }
+  .q-nav [data-next], .q-nav [data-submit] { margin-left: auto; min-width: 12rem; }
+
+  @media (max-width: 58rem) {
+    .q-body { grid-template-columns: 1fr; }
+    .q-body > .success { grid-column: auto; }
+    .q-progress { position: static; display: flex; gap: 0.4rem; }
+    .q-progress li { flex: 1; flex-direction: column; align-items: stretch; gap: 0; padding: 0; }
+    .q-progress li::before { content: none; }
+    .q-progress li { height: 0.35rem; background: var(--line); border-radius: 2px; }
+    .q-progress li[aria-current], .q-progress li[data-done] { background: var(--primary); }
+    .q-progress span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  }
+  @media (max-width: 36rem) { .row, .choices.two { grid-template-columns: 1fr; } }
+</style>

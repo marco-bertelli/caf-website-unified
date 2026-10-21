@@ -1,0 +1,224 @@
+---
+import Base from '../layouts/Base.astro';
+import Promemoria from '../components/Promemoria.astro';
+import ListaServizi from '../components/ListaServizi.astro';
+import ListaScadenze from '../components/ListaScadenze.astro';
+import Eventi from '../components/Eventi.astro';
+import { azienda, indirizzoCompleto, telLink, mappaLink } from '@tutela/shared/azienda.ts';
+
+const { lat, lng } = azienda.coordinate;
+const bbox = [lng - 0.006, lat - 0.003, lng + 0.006, lat + 0.003].map((n) => n.toFixed(4)).join(',');
+const giorniSchema = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'AccountingService',
+  name: azienda.siti.caf.nome,
+  url: azienda.siti.caf.url,
+  telephone: `+39 ${azienda.telefono}`,
+  email: azienda.email,
+  address: {
+    '@type': 'PostalAddress', streetAddress: azienda.indirizzo, postalCode: azienda.cap,
+    addressLocality: azienda.citta, addressRegion: azienda.provincia, addressCountry: 'IT',
+  },
+  geo: { '@type': 'GeoCoordinates', latitude: lat, longitude: lng },
+  openingHoursSpecification: azienda.orari.flatMap((o, i) => o.fasce.map((f) => ({
+    '@type': 'OpeningHoursSpecification', dayOfWeek: giorniSchema[i],
+    opens: f.split('–')[0].padStart(5, '0'), closes: f.split('–')[1].padStart(5, '0'),
+  }))),
+};
+
+const faq = [
+  { q: 'Quanto costa un appuntamento?', a: 'Dipende dal servizio: ISEE, Assegno Unico, NASpI, RED e domanda di pensione sono gratuiti. Per gli altri trovi il prezzo di partenza nella pagina del servizio e te lo confermiamo prima di iniziare.' },
+  { q: 'Mi serve lo SPID?', a: 'No. Per accedere ai tuoi dati su INPS e Agenzia delle Entrate ti facciamo firmare una delega in ufficio. Ti basta il documento d\'identità.' },
+  { q: 'Può venire un familiare al posto mio?', a: 'Sì, con una delega firmata da te e la fotocopia del tuo documento. Il modulo di delega te lo diamo noi: chiedilo per telefono o su WhatsApp.' },
+  { q: 'Se dimentico un documento?', a: 'Non c\'è problema: iniziamo la pratica e ci mandi il documento mancante per email o WhatsApp, oppure lo porti nei giorni successivi.' },
+  { q: 'Fate anche la dichiarazione dei miei familiari?', a: 'Sì. Prenota un appuntamento per ciascuno e indica nelle note che venite insieme: li mettiamo uno dopo l\'altro.' },
+];
+
+const passi = [
+  { t: 'Scegli il servizio e prenota', d: 'Online, per telefono o su WhatsApp. Ti richiamiamo entro un giorno lavorativo per confermare data e ora.' },
+  { t: 'Prepara i documenti', d: 'In ogni pagina del servizio trovi la lista completa, da spuntare o stampare.' },
+  { t: 'Vieni in ufficio', d: 'Un operatore fa la pratica con te, ti spiega ogni passaggio e ti consegna le copie.' },
+];
+---
+<Base
+  title={`${azienda.siti.caf.nome}: CAF e Patronato a Palazzolo sull'Oglio`}
+  description="730, ISEE, successioni, colf e badanti, pratiche INPS a Palazzolo sull'Oglio. Guarda cosa portare per ogni servizio e prenota il tuo appuntamento."
+>
+  <script type="application/ld+json" slot="head" set:html={JSON.stringify(schema)} />
+
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <h1>Dichiarazioni, ISEE e pratiche INPS a Palazzolo sull'Oglio</h1>
+        <p class="lead">Scegli il servizio, guarda cosa portare e prenota. All'appuntamento avrai già tutto, e una persona che ti spiega ogni passaggio.</p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="/prenota/">Prenota un appuntamento</a>
+          <a class="btn btn-ghost" href={telLink}>Chiama {azienda.telefono}</a>
+        </div>
+        <ul class="hero-facts">
+          <li><strong>Senza SPID</strong> basta una delega firmata in ufficio</li>
+          <li><strong>ISEE e Assegno Unico</strong> gratuiti</li>
+          <li><strong>Risposta entro un giorno</strong> alle richieste online</li>
+        </ul>
+      </div>
+      <div class="hero-tool" id="cosa-portare">
+        <Promemoria />
+      </div>
+    </div>
+  </section>
+
+  <section class="scad-band" aria-labelledby="scad-t">
+    <div class="wrap scad-grid">
+      <div class="scad-head">
+        <h2 id="scad-t">Prossime scadenze</h2>
+        <a href="/scadenze/">Tutte le scadenze dell'anno</a>
+      </div>
+      <ListaScadenze max={3} compatta />
+    </div>
+  </section>
+
+  <section class="section eventi-band" aria-labelledby="eventi-t">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="eventi-t">Cosa ti è successo?</h2>
+        <p>Scegli la tua situazione: ti diciamo quali pratiche servono, in che ordine e entro quando.</p>
+      </div>
+      <Eventi />
+    </div>
+  </section>
+
+  <section class="section" id="servizi" aria-labelledby="servizi-t">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="servizi-t">Cosa possiamo fare per te</h2>
+        <p>Siamo CAF e Patronato: dalle tasse alla famiglia, dalla casa alla pensione. Apri un servizio per vedere come funziona, quanto costa e cosa portare.</p>
+      </div>
+      <ListaServizi />
+    </div>
+  </section>
+
+  <section class="section tint" aria-labelledby="come-t">
+    <div class="wrap">
+      <div class="section-head"><h2 id="come-t">Come funziona</h2></div>
+      <ol class="passi">
+        {passi.map((p, i) => (
+          <li><span class="passo-n" aria-hidden="true">{i + 1}</span><h3>{p.t}</h3><p>{p.d}</p></li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <section class="section" id="dove-siamo" aria-labelledby="dove-t">
+    <div class="wrap dove">
+      <div class="dove-info">
+        <h2 id="dove-t">Dove siamo</h2>
+        <address>
+          <strong>{azienda.siti.caf.nome}</strong><br />
+          {azienda.indirizzo}<br />
+          {azienda.cap} {azienda.citta} ({azienda.provincia})
+        </address>
+        <p class="hint">{azienda.parcheggio}</p>
+        <table class="orari">
+          <caption class="vh">Orari di apertura</caption>
+          <tbody>
+            {azienda.orari.map((o, i) => (
+              <tr data-giorno={(i + 1) % 7}>
+                <th scope="row">{o.giorno}</th>
+                <td>{o.fasce.length ? o.fasce.join(' e ') : 'Chiuso'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <div class="dove-cta">
+          <a class="btn btn-ghost" href={mappaLink}>Apri la mappa</a>
+          <a class="btn btn-ghost" href={`https://wa.me/${azienda.whatsapp}`}>Scrivici su WhatsApp</a>
+        </div>
+      </div>
+      <div class="mappa">
+        <iframe
+          title={`Mappa: ${indirizzoCompleto}`}
+          src={`https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}`}
+          loading="lazy"
+        ></iframe>
+      </div>
+    </div>
+  </section>
+
+  <section class="pensioni-band" aria-labelledby="pens-t">
+    <div class="wrap pensioni-grid">
+      <div>
+        <h2 id="pens-t">Vuoi sapere quando potrai andare in pensione, e con quanto?</h2>
+        <p>Con la nostra consulenza pensionistica un esperto analizza tutta la tua storia contributiva e ti consegna una relazione scritta, che poi ti spiega in videochiamata. Si fa tutto online.</p>
+      </div>
+      <a class="btn btn-light" href={azienda.siti.pensioni.url}>Scopri la consulenza pensionistica</a>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="faq-t">
+    <div class="wrap faq-grid">
+      <h2 id="faq-t">Domande frequenti</h2>
+      <div class="faq">
+        {faq.map((f) => <details><summary>{f.q}</summary><div><p>{f.a}</p></div></details>)}
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script>
+  import { oraItaliana } from '../lib/orari';
+  // evidenzia la riga di oggi negli orari
+  document.querySelector(`.orari tr[data-giorno="${oraItaliana().giorno}"]`)?.classList.add('oggi');
+</script>
+
+<style>
+  .hero { padding-block: clamp(2.5rem, 6vw, 5rem) clamp(3rem, 6vw, 5.5rem); background: var(--surface); --bg-behind: var(--surface); }
+  .hero-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: clamp(2rem, 5vw, 4.5rem); align-items: start; }
+  .hero-copy { display: grid; gap: 1.5rem; padding-top: clamp(0rem, 3vw, 2.5rem); }
+  .hero-copy h1 { max-width: 14ch; }
+  .hero-cta { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+  .hero-facts { list-style: none; padding: 1.5rem 0 0; margin-top: 0.5rem; border-top: 1px solid var(--line-strong); display: grid; gap: 0.5rem; color: var(--ink-2); }
+  .hero-facts strong { color: var(--ink); }
+  @media (max-width: 60rem) { .hero-grid { grid-template-columns: 1fr; } .hero-copy h1 { max-width: 18ch; } }
+
+  .scad-band { padding-block: 2rem; border-bottom: 1px solid var(--line); }
+  .scad-grid { display: grid; grid-template-columns: 13rem 1fr; gap: 1.5rem 3rem; align-items: center; }
+  .scad-head { display: grid; gap: 0.35rem; }
+  .scad-head h2 { font-size: 1.35rem; }
+  .scad-head a { font-weight: 650; }
+  @media (max-width: 52rem) { .scad-grid { grid-template-columns: 1fr; } }
+
+  .eventi-band { background: var(--deep); color: #dfe9e5; }
+  .eventi-band h2 { color: #fff; }
+  .eventi-band .section-head p { color: #c9d8d3; }
+
+  .passi { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; counter-reset: none; }
+  .passi li { display: grid; gap: 0.6rem; align-content: start; padding-top: 1.25rem; border-top: 2px solid var(--ink); }
+  .passo-n { font-size: 2.75rem; font-weight: 750; line-height: 1; color: var(--primary); letter-spacing: -0.04em; }
+  .passi p { color: var(--ink-2); max-width: 32ch; }
+  @media (max-width: 48rem) { .passi { grid-template-columns: 1fr; } }
+
+  .dove { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: clamp(2rem, 5vw, 4rem); align-items: start; }
+  .dove-info { display: grid; gap: 1.25rem; }
+  address { font-style: normal; font-size: 1.15rem; }
+  .orari { border-collapse: collapse; width: 100%; max-width: 26rem; }
+  .orari th, .orari td { text-align: left; padding: 0.55rem 0.75rem 0.55rem 0; border-bottom: 1px solid var(--line); font-weight: 400; }
+  .orari th { width: 9rem; }
+  .orari tr.oggi th, .orari tr.oggi td { font-weight: 750; }
+  .orari tr.oggi th::after { content: ' (oggi)'; font-weight: 400; color: var(--ink-2); }
+  .dove-cta { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+  .mappa { aspect-ratio: 4 / 3; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); background: var(--surface); }
+  .mappa iframe { width: 100%; height: 100%; border: 0; }
+  @media (max-width: 52rem) { .dove { grid-template-columns: 1fr; } }
+
+  .pensioni-band { background: var(--deep); color: #dfe9e5; padding-block: clamp(3rem, 6vw, 4.5rem); }
+  .pensioni-grid { display: grid; grid-template-columns: 1fr auto; gap: 2rem 4rem; align-items: center; }
+  .pensioni-band h2 { color: #fff; max-width: 24ch; margin-bottom: 0.9rem; }
+  .pensioni-band p { max-width: 58ch; }
+  .btn-light { background: var(--marker); color: var(--ink); }
+  .btn-light:hover { background: #ffe57a; }
+  @media (max-width: 52rem) { .pensioni-grid { grid-template-columns: 1fr; } .pensioni-grid .btn { justify-self: start; } }
+
+  .faq-grid { display: grid; grid-template-columns: 0.7fr 1.3fr; gap: 2rem 4rem; }
+  @media (max-width: 52rem) { .faq-grid { grid-template-columns: 1fr; } }
+</style>

@@ -1,0 +1,130 @@
+---
+import Base from '../layouts/Base.astro';
+import ListaScadenze from '../components/ListaScadenze.astro';
+import { scadenze, categorieScadenze } from '../data/scadenze';
+
+const mesi = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
+const mesiLunghi = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
+// posizione nell'anno, in percentuale (anno tipo di 365 giorni)
+const pos = (mese: number, giorno: number) => {
+  const inizio = Date.UTC(2025, 0, 1);
+  return ((Date.UTC(2025, mese - 1, giorno) - inizio) / 864e5 / 365) * 100;
+};
+---
+<Base title="Scadenze fiscali" description="Le scadenze dell'anno per 730, Modello Redditi, IMU, ISEE e contributi di colf e badanti, con promemoria da aggiungere al calendario.">
+  <div class="wrap">
+    <nav class="crumbs" aria-label="Percorso"><ol><li><a href="/">Home</a></li><li aria-current="page">Scadenze</li></ol></nav>
+  </div>
+
+  <section class="wrap sc-hero">
+    <h1>Le scadenze dell'anno</h1>
+    <p class="lead">Dichiarazioni, IMU, ISEE e contributi per colf e badanti. Aggiungile al tuo calendario: ti arriva un promemoria una settimana prima.</p>
+  </section>
+
+  <section class="wrap" aria-labelledby="anno-t">
+    <h2 id="anno-t" class="vh">L'anno in un colpo d'occhio</h2>
+    <div class="anno" data-anno>
+      <div class="anno-mesi" aria-hidden="true">
+        <span></span>
+        <div>{mesi.map((m) => <span>{m}</span>)}</div>
+      </div>
+      {categorieScadenze.map((c) => (
+        <div class="corsia" data-corsia={c} data-cat={c}>
+          <button type="button" class="corsia-nome" data-filtro={c} aria-pressed="false">{c}</button>
+          <div class="corsia-track">
+            {scadenze.filter((s) => s.categoria === c).map((s) => (
+              <a class="punto" href={`#s-${s.id}`} data-x={pos(s.mese, s.giorno)} style={`left:${pos(s.mese, s.giorno)}%`} title={`${s.giorno} ${mesiLunghi[s.mese - 1]}: ${s.titolo}`}>
+                <span class="vh">{s.giorno} {mesiLunghi[s.mese - 1]}: {s.titolo}</span>
+              </a>
+            ))}
+          </div>
+        </div>
+      ))}
+      <div class="anno-overlay" aria-hidden="true"><div class="anno-oggi" data-oggi hidden><span>Oggi</span></div></div>
+    </div>
+  </section>
+
+  <section class="wrap sc-list" aria-labelledby="lista-t">
+    <div class="sc-list-head">
+      <h2 id="lista-t">Dalla più vicina</h2>
+      <div class="filtri" role="group" aria-label="Filtra per argomento">
+        <button type="button" data-filtro="" aria-pressed="true">Tutte</button>
+        {categorieScadenze.map((c) => <button type="button" data-filtro={c} data-cat={c} aria-pressed="false">{c}</button>)}
+      </div>
+    </div>
+    <ListaScadenze />
+    <p class="sc-nota">Se una scadenza cade di sabato o domenica slitta al lunedì; le date qui sopra ne tengono già conto. Le scadenze possono cambiare con le leggi di bilancio: in caso di dubbio chiamaci.</p>
+  </section>
+</Base>
+
+<script>
+  // linea di oggi sul grafico
+  const oggi = new Date();
+  const inizio = new Date(oggi.getFullYear(), 0, 1);
+  const el = document.querySelector<HTMLElement>('[data-oggi]')!;
+  const x = ((oggi.getTime() - inizio.getTime()) / 864e5 / 365) * 100;
+  el.style.setProperty('--x', `${x}%`);
+  el.hidden = false;
+  document.querySelectorAll<HTMLElement>('.punto').forEach((p) => p.toggleAttribute('data-passata', Number(p.dataset.x) < x));
+
+  // filtri: i bottoni sopra la lista e i nomi delle corsie fanno la stessa cosa
+  const bottoni = document.querySelectorAll<HTMLButtonElement>('[data-filtro]');
+  const filtra = (cat: string) => {
+    bottoni.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.filtro === cat || (!cat && b.dataset.filtro === ''))));
+    document.querySelectorAll<HTMLElement>('.scad').forEach((li) => (li.hidden = !!cat && li.dataset.categoria !== cat));
+    document.querySelectorAll<HTMLElement>('[data-corsia]').forEach((c) => c.toggleAttribute('data-spenta', !!cat && c.dataset.corsia !== cat));
+  };
+  bottoni.forEach((b) => b.addEventListener('click', () => {
+    const attivo = b.getAttribute('aria-pressed') === 'true';
+    filtra(attivo && b.dataset.filtro ? '' : b.dataset.filtro!);
+  }));
+</script>
+
+<style>
+  .sc-hero { display: grid; gap: 1rem; padding-block: 1.5rem 2.5rem; }
+  .sc-hero .lead { max-width: 52ch; }
+
+  .anno { position: relative; --label: 10rem; --pad: 1.25rem; padding: 1.25rem var(--pad) 2rem; background: var(--surface); border-radius: var(--radius); }
+  .anno-mesi, .corsia { display: grid; grid-template-columns: var(--label) 1fr; align-items: center; }
+  .anno-mesi > div { display: grid; grid-template-columns: repeat(12, 1fr); font-size: 0.85rem; color: var(--ink-2); padding-bottom: 0.4rem; }
+  .anno-mesi > div span { padding-left: 0.35rem; }
+  .corsia-track {
+    position: relative; height: 2.75rem;
+    background: repeating-linear-gradient(90deg, rgb(19 34 30 / 0.07) 0 1px, transparent 1px calc(100% / 12));
+    border-top: 1px solid var(--line);
+  }
+  .corsia-track::after { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 2px; background: var(--cat); opacity: 0.25; }
+  .corsia-nome { justify-self: start; background: none; border: 0; padding: 0.3rem 0.6rem 0.3rem 0; font-weight: 650; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; }
+  .corsia-nome::before { content: ''; width: 0.7rem; height: 0.7rem; border-radius: 50%; background: var(--cat); flex: none; }
+  .corsia-nome:hover { text-decoration: underline; }
+  .punto {
+    position: absolute; top: 50%; width: 1rem; height: 1rem; transform: translate(-50%, -50%); z-index: 1;
+    border-radius: 50%; background: var(--cat); border: 2px solid var(--surface); transition: transform 0.15s;
+  }
+  .punto:hover, .punto:focus-visible { transform: translate(-50%, -50%) scale(1.35); }
+  .punto[data-passata] { opacity: 0.35; }
+  .corsia { transition: opacity 0.2s; }
+  .corsia[data-spenta] { opacity: 0.25; }
+  .anno-overlay { position: absolute; top: 2.75rem; bottom: 2rem; left: calc(var(--pad) + var(--label)); right: var(--pad); pointer-events: none; z-index: 2; }
+  .anno-oggi { position: absolute; top: 0; bottom: 0; left: var(--x); width: 2px; background: var(--ink); }
+  .anno-oggi span { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); font-size: 0.75rem; font-weight: 700; background: var(--ink); color: #fff; padding: 0.05rem 0.4rem; border-radius: 3px; }
+
+  .sc-list { padding-block: clamp(3rem, 6vw, 4.5rem) clamp(4rem, 8vw, 6rem); --bg-behind: var(--bg); }
+  .sc-list-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 1rem 2rem; margin-bottom: 1.25rem; }
+  .filtri { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .filtri button {
+    display: inline-flex; align-items: center; gap: 0.45rem; min-height: 2.5rem; padding: 0.4rem 0.9rem;
+    border: 1.5px solid var(--line-strong); border-radius: 999px; background: #fff; cursor: pointer; font-weight: 600;
+  }
+  .filtri button[data-cat]::before { content: ''; width: 0.6rem; height: 0.6rem; border-radius: 50%; background: var(--cat); }
+  .filtri button[aria-pressed='true'] { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .sc-nota { margin-top: 2rem; color: var(--ink-2); font-size: 0.95rem; max-width: 70ch; }
+
+  @media (max-width: 40rem) {
+    .anno { --label: 2.25rem; --pad: 0.75rem; }
+    .corsia-nome { font-size: 0; padding: 0; }
+    .corsia-nome::before { width: 0.9rem; height: 0.9rem; }
+    .anno-mesi > div span { font-size: 0; padding: 0; }
+    .anno-mesi > div span::first-letter { font-size: 0.8rem; }
+  }
+</style>
