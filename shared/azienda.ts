@@ -30,8 +30,8 @@ export const azienda = {
   ], // da scheda Google, ottobre 2026
 
   siti: {
-    caf: { nome: 'Tutela Previdenziale', linea: 'CAF e Patronato', url: 'https://caf.tutelaprevidenziale.example' }, // MOCK: dominio
-    pensioni: { nome: 'Tutela Previdenziale', linea: 'Consulenza pensionistica', url: 'https://pensioni.tutelaprevidenziale.example' }, // MOCK: dominio
+    caf: { nome: 'Tutela Previdenziale', linea: 'CAF e Patronato', url: 'https://tutela-caf.vercel.app' }, // da cambiare quando c'è il dominio vero
+    pensioni: { nome: 'Tutela Previdenziale', linea: 'Consulenza pensionistica', url: 'https://tutela-pensioni.vercel.app' }, // da cambiare quando c'è il dominio vero
   },
 
   // Endpoint dei form (es. Formspree, Netlify Forms, Basin).

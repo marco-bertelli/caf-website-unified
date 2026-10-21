@@ -28,7 +28,7 @@ Tutti i dati da completare sono in **`shared/azienda.ts`** e segnati `MOCK` o `D
 
 - ragione sociale, P.IVA, email, PEC, numero WhatsApp
 - convenzione CAF (Pagine Bianche indica C.A.F. Nazionale del Lavoro allo stesso indirizzo)
-- domini dei due siti (`siti.caf.url`, `siti.pensioni.url`): servono per canonical e sitemap
+- domini dei due siti (`siti.caf.url`, `siti.pensioni.url`): oggi puntano a Vercel, vanno cambiati quando si collega un dominio vero
 - endpoint dei 3 form (`form.prenota`, `form.questionario`, `form.studi`), es. [Formspree](https://formspree.io): crea un form per ciascuno e incolla l'URL. Finché sono vuoti i form mostrano la conferma senza inviare nulla
 - contatti dedicati agli studi e tempo di risposta promesso
 - nota sul parcheggio, coordinate precise del civico
@@ -44,6 +44,13 @@ Altri contenuti da confermare con l'ufficio:
 Già reali (dalla scheda Google): nome, indirizzo, telefono, orari, pagina Facebook.
 
 ## Pubblicazione
+
+Online su Vercel (team marcobertellis-projects), con deploy automatico a ogni push su `main`:
+
+- CAF: https://tutela-caf.vercel.app (progetto `tutela-caf`)
+- Pensioni: https://tutela-pensioni.vercel.app (progetto `tutela-pensioni`)
+
+Per ricrearli altrove:
 
 Due progetti separati su Netlify, Vercel o Cloudflare Pages, collegati allo stesso repository:
 
